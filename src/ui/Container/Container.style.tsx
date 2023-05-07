@@ -12,7 +12,7 @@ const Container = styled.div<ContainerProps>`
       : ''}
   max-width: 77vw;
   margin: 0 auto;
-
+  overflow: hidden;
   @media (max-width: 768px) {
     max-width: 85vw;
   }
