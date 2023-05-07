@@ -1,6 +1,7 @@
 import Container from '../../ui/Container';
 import NavBar from '../layouts/NavBar';
 import { useUser } from '../../hooks/useUser';
+import ButtonOrLink from '../../ui/Container/ButtonOrLink';
 
 function App() {
   const { login, logout } = useUser();
@@ -22,6 +23,17 @@ function App() {
             <p>NavBar component done</p>
             <button onClick={() => login(testUser)}>Sign in test user</button>
             <button onClick={() => logout()}>Sign out test user</button>
+          </li>
+          <li>
+            <p>Button component done</p>
+            <p>
+              <ButtonOrLink $colors={['#ff456f', '#687ff3']}>
+                Button
+              </ButtonOrLink>
+            </p>
+            <p>
+              <ButtonOrLink link="/">Button</ButtonOrLink>
+            </p>
           </li>
         </ul>
       </Container>
