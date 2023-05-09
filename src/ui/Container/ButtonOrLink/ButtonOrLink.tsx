@@ -8,6 +8,7 @@ function ButtonOrLink({
   $textColor = '#FFF',
   $transitionTimeInMs = 400,
   link,
+  disabled,
   onClick,
 }: ButtonOrLinkProps) {
   if (link) {
@@ -28,7 +29,8 @@ function ButtonOrLink({
         $colorsDirection={$colorsDirection}
         $textColor={$textColor}
         $transitionTimeInMs={$transitionTimeInMs}
-        onClick={onClick}>
+        onClick={onClick}
+        disabled={disabled}>
         {children}
       </Button>
     );
