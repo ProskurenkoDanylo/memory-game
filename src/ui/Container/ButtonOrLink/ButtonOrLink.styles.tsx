@@ -56,6 +56,11 @@ const sharedStyles = css`
 
 export const Button = styled.button`
   ${sharedStyles};
+
+  &:disabled {
+    opacity: 0.9;
+    pointer-events: none;
+  }
 `;
 
 export const Link = styled(RouterLink)`

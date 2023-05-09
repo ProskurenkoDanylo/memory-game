@@ -5,5 +5,6 @@ export interface ButtonOrLink {
   $textColor?: string;
   $transitionTimeInMs?: number;
   link?: string;
+  disabled?: boolean;
   onClick?: () => void;
 }
