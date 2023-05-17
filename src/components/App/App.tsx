@@ -34,12 +34,20 @@ function App() {
           <li>
             <p>Button component done</p>
             <p>
-              <ButtonOrLink $colors={['#ff456f', '#687ff3']}>
+              <ButtonOrLink
+                $colors={['#ff456f', '#687ff3']}
+                startIcon={<IoSettings />}
+                endIcon={<IoSettings />}>
                 Button
               </ButtonOrLink>
             </p>
             <p>
-              <ButtonOrLink link="/">Button</ButtonOrLink>
+              <ButtonOrLink
+                link="/"
+                startIcon={<IoSettings />}
+                endIcon={<IoSettings />}>
+                Link
+              </ButtonOrLink>
             </p>
           </li>
           <li>

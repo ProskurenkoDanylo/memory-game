@@ -9,6 +9,8 @@ function ButtonOrLink({
   $transitionTimeInMs = 400,
   link,
   disabled,
+  startIcon,
+  endIcon,
   onClick,
 }: ButtonOrLinkProps) {
   if (link) {
@@ -18,8 +20,12 @@ function ButtonOrLink({
         $colors={$colors}
         $colorsDirection={$colorsDirection}
         $textColor={$textColor}
-        $transitionTimeInMs={$transitionTimeInMs}>
+        $transitionTimeInMs={$transitionTimeInMs}
+        startIcon={startIcon}
+        endIcon={endIcon}>
+        {startIcon}
         {children}
+        {endIcon}
       </Link>
     );
   } else {
@@ -31,7 +37,9 @@ function ButtonOrLink({
         $transitionTimeInMs={$transitionTimeInMs}
         onClick={onClick}
         disabled={disabled}>
+        {startIcon}
         {children}
+        {endIcon}
       </Button>
     );
   }
