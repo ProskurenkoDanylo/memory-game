@@ -3,12 +3,14 @@ import { Button, Link } from './ButtonOrLink.styles';
 
 function ButtonOrLink({
   children,
+  link,
+  disabled,
   $colors = '#0D66B1',
   $colorsDirection = -45,
   $textColor = '#FFF',
   $transitionTimeInMs = 400,
-  link,
-  disabled,
+  $startIcon,
+  $endIcon,
   onClick,
 }: ButtonOrLinkProps) {
   if (link) {
@@ -18,8 +20,12 @@ function ButtonOrLink({
         $colors={$colors}
         $colorsDirection={$colorsDirection}
         $textColor={$textColor}
-        $transitionTimeInMs={$transitionTimeInMs}>
+        $transitionTimeInMs={$transitionTimeInMs}
+        $startIcon={$startIcon}
+        $endIcon={$endIcon}>
+        {$startIcon}
         {children}
+        {$endIcon}
       </Link>
     );
   } else {
@@ -31,7 +37,9 @@ function ButtonOrLink({
         $transitionTimeInMs={$transitionTimeInMs}
         onClick={onClick}
         disabled={disabled}>
+        {$startIcon}
         {children}
+        {$endIcon}
       </Button>
     );
   }

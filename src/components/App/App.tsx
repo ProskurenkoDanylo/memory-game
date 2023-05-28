@@ -6,12 +6,15 @@ import { useUser } from '../../hooks/useUser';
 import ButtonOrLink from '../../ui/ButtonOrLink';
 import Input from '../../ui/Input';
 
-import { AiFillCar, AiFillRocket } from 'react-icons/ai';
 import { IoSettings } from 'react-icons/io5';
+import Card from '../Card';
+import fireBorder from '../../assets/images/fire-border.svg';
+import defaultCover from '../../assets/images/default-cover.svg';
 
 function App() {
   const { login, logout } = useUser();
   const [inputValue, setInputValue] = useState<string>('');
+  const [cardOpened, setCardOpened] = useState(false);
 
   const testUser = {
     id: 1,
@@ -34,12 +37,20 @@ function App() {
           <li>
             <p>Button component done</p>
             <p>
-              <ButtonOrLink $colors={['#ff456f', '#687ff3']}>
+              <ButtonOrLink
+                $colors={['#ff456f', '#687ff3']}
+                $startIcon={<IoSettings />}
+                $endIcon={<IoSettings />}>
                 Button
               </ButtonOrLink>
             </p>
             <p>
-              <ButtonOrLink link="/">Button</ButtonOrLink>
+              <ButtonOrLink
+                link="/"
+                $startIcon={<IoSettings />}
+                $endIcon={<IoSettings />}>
+                Link
+              </ButtonOrLink>
             </p>
           </li>
           <li>
@@ -75,6 +86,20 @@ function App() {
               placeholder="Enter your name"
               disabled
               onChange={(e) => setInputValue(e.target.value)}
+            />
+          </li>
+          <li>
+            <Card
+              frontIconURL={defaultCover}
+              back="https://picsum.photos/200/300"
+              border={{
+                borderWidth: 20,
+                borderColor: 'white',
+                borderStyle: 'solid',
+                borderImageURL: fireBorder,
+              }}
+              opened={cardOpened}
+              onClick={() => setCardOpened((opened) => !opened)}
             />
           </li>
         </ul>

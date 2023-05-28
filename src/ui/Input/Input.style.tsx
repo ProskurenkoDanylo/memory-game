@@ -15,7 +15,8 @@ export const InputWrapper = styled.div`
     position: absolute;
     width: 20px;
     height: 20px;
-    top: 12px;
+    top: 50%;
+    transform: translateY(-50%);
     font-size: 20px;
     &:first-child {
       left: 12px;
