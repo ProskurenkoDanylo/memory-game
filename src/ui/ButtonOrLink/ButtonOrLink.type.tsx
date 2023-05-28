@@ -9,9 +9,9 @@ export interface ButtonOrLink {
   $colorsDirection?: number;
   $textColor?: string;
   $transitionTimeInMs?: number;
+  $startIcon?: Icon;
+  $endIcon?: Icon;
   link?: string;
   disabled?: boolean;
-  startIcon?: Icon;
-  endIcon?: Icon;
   onClick?: () => void;
 }
