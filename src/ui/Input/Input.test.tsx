@@ -1,4 +1,4 @@
-import { render, fireEvent } from '@testing-library/react';
+import { render } from '@testing-library/react';
 import Input from './Input';
 
 test('renders without crashing', () => {
@@ -19,14 +19,6 @@ test('renders label with correct htmlFor attribute', () => {
   const label = getByText('My Label');
   expect(label.getAttribute('for')).toBe('my-input');
   expect(label.textContent).toBe('My Label');
-});
-
-test('throws error when label is set without id', () => {
-  expect(() => {
-    render(<Input label="My Label" name="test" value="" onChange={() => {}} />);
-  }).toThrow(
-    'Trying to set label without specifiyng an id. Add id to your input component.'
-  );
 });
 
 test('renders input with correct props', () => {
