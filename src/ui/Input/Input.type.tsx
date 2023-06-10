@@ -13,7 +13,7 @@ export interface Input {
   type?: 'text' | 'password' | 'email';
   label?: string;
   placeholder?: string;
-  isValid?: boolean;
+  isValid?: boolean | string;
   isRequired?: boolean;
   errorMessage?: string;
   disabled?: boolean;
