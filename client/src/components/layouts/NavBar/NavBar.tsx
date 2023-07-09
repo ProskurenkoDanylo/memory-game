@@ -15,7 +15,7 @@ const NavBar = () => {
     <S.Nav>
       <Container flex>
         <div className="home">
-          <S.NavLink to="" aria-label="Home">
+          <S.NavLink to="/" aria-label="Home">
             <FaHome />
           </S.NavLink>
         </div>
@@ -39,7 +39,7 @@ const NavBar = () => {
           </S.NavList>
         ) : (
           <div>
-            <S.NavLink to="" aria-label="Sign in">
+            <S.NavLink to="/sign-in" aria-label="Sign in">
               <FaSignInAlt />
             </S.NavLink>
           </div>

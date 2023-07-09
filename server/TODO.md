@@ -1,4 +1,5 @@
 - Continue to develop frontend up to game screen
+- Add categories and movies to mongodb
 
   then
 
