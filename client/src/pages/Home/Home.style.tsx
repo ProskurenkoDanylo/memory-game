@@ -1,5 +1,7 @@
 import styled from 'styled-components';
 
+import { FaTrophy } from 'react-icons/fa';
+
 export const LandingPreviewImg = styled.img`
   display: block;
   width: 100%;
@@ -57,4 +59,23 @@ export const BattleImage = styled.img`
 export const CenteredDiv = styled.div`
   text-align: center;
   margin: 2em 0 3em 0;
+`;
+
+export const GameStartButtons = styled.div`
+  text-align: center;
+  margin: 4em;
+`;
+
+export const UserProfileImage = styled.img`
+  height: 25px;
+  width: 25px;
+  border: 2px solid #fff;
+  margin-right: 15px;
+  vertical-align: middle;
+`;
+
+export const Trophy = styled(FaTrophy)`
+  color: #ffd600;
+  vertical-align: middle;
+  margin-right: 15px;
 `;
