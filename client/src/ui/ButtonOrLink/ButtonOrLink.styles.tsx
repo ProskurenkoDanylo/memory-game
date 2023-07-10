@@ -28,7 +28,10 @@ function makeDarker(
 }
 
 const sharedStyles = css`
-  position: relative;
+  display: inline-flex;
+  gap: 10px;
+  justify-content: center;
+  align-items: center;
   color: ${({ $textColor }: ButtonOrLink) => $textColor};
   background: ${({ $colors, $colorsDirection }: ButtonOrLink) =>
     !Array.isArray($colors)
@@ -43,8 +46,7 @@ const sharedStyles = css`
   padding: 15px 30px;
   min-width: 150px;
   outline-color: #fff;
-  padding: 10px ${({ $endIcon }: ButtonOrLink) => ($endIcon ? '40px' : '20px')}
-    10px ${({ $startIcon }: ButtonOrLink) => ($startIcon ? '40px' : '20px')};
+  padding: 10px 15px;
 
   &:hover {
     background: ${({ $colors, $colorsDirection }: ButtonOrLink) =>
@@ -59,18 +61,9 @@ const sharedStyles = css`
   img,
   svg,
   i {
-    position: absolute;
     width: 20px;
-    height: 20px;
-    top: 50%;
-    transform: translateY(-50%);
+    height: auto;
     font-size: 20px;
-    &:first-child {
-      left: 12px;
-    }
-    &:last-child {
-      right: 12px;
-    }
   }
 `;
 
