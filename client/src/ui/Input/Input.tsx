@@ -1,5 +1,10 @@
+import React from 'react';
 import { Input as InputProps } from './Input.type';
 import * as S from './Input.style';
+
+const addClassName = (element: React.ReactElement, className: string) => {
+  return React.createElement(element.type, { ...element.props, className });
+};
 
 function Input({
   id,
@@ -33,7 +38,7 @@ function Input({
     <>
       {label ? <S.Label htmlFor={id}>{label}</S.Label> : null}
       <S.InputWrapper>
-        {startIcon}
+        {startIcon ? addClassName(startIcon, 'start-icon') : null}
         <S.Input
           id={id}
           className={className}
@@ -53,7 +58,7 @@ function Input({
           hasEndIcon={startIcon ? true : false}
           aria-invalid={!isValid}
         />
-        {endIcon}
+        {endIcon ? addClassName(endIcon, 'end-icon') : null}
       </S.InputWrapper>
       {!isValid ? <S.ErrorMessage>{errorMessage}</S.ErrorMessage> : null}
     </>

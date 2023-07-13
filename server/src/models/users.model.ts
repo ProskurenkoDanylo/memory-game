@@ -20,12 +20,12 @@ interface User {
     date_achieved: number;
   }[];
   history?: {
-    game_id: ObjectId[];
-    opponent?: User;
+    game_id: ObjectId;
+    opponent?: string;
     scoreEarned: number;
     mode: string;
     movie: string;
-    result: string;
+    result: 'win' | 'lose' | 'draw';
   }[];
 }
 

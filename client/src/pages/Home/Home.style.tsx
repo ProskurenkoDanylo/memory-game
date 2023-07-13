@@ -79,3 +79,12 @@ export const Trophy = styled(FaTrophy)`
   vertical-align: middle;
   margin-right: 15px;
 `;
+
+export const BorderTop = styled.div`
+  position: fixed;
+  z-index: 999;
+  background-color: rgb(8, 14, 21);
+  width: 100vw;
+  border-top: 1px solid #d9d9d9;
+  bottom: 0;
+`;
