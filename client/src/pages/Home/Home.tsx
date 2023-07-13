@@ -9,6 +9,7 @@ import Text from '../../ui/Text';
 import * as S from './Home.style';
 
 import Landing from './Landing';
+import History from '../../components/History';
 import ButtonOrLink from '../../ui/ButtonOrLink/ButtonOrLink';
 
 import computerIcon from '../../assets/images/Home/computer.svg';
@@ -17,10 +18,37 @@ import swordsIcon from '../../assets/images/Home/swords.png';
 function Home() {
   const { isAuthenticated, user, contextLoading } = useContext(AuthContext);
 
+  // const history = [
+  //   {
+  //     game_id: 'fsd',
+  //     opponent: 'opponentName',
+  //     scoreEarned: 2990,
+  //     mode: 'bomb',
+  //     movie: 'Avatar',
+  //     result: 'win',
+  //   },
+  //   {
+  //     game_id: 'fsd',
+  //     opponent: 'opponent2',
+  //     scoreEarned: 1112,
+  //     mode: 'bomb',
+  //     movie: 'Avatar',
+  //     result: 'draw',
+  //   },
+  //   {
+  //     game_id: 'fsd',
+  //     opponent: 'sus291',
+  //     scoreEarned: 3242,
+  //     mode: 'bomb',
+  //     movie: 'Avatar',
+  //     result: 'lose',
+  //   },
+  // ];
+
   return (
     <>
       <NavBar />
-      {contextLoading ? (
+      {contextLoading && false ? (
         <ClipLoader
           color="#00ffea"
           size={60}
@@ -29,7 +57,7 @@ function Home() {
             margin: '10px auto',
           }}
         />
-      ) : !isAuthenticated ? (
+      ) : !isAuthenticated && false ? (
         <Landing />
       ) : (
         <main>
@@ -60,8 +88,12 @@ function Home() {
                 Quick start
               </ButtonOrLink>
             </S.GameStartButtons>
-            {/* TODO History block (expansible, contains 5 last games) */}
           </Container>
+          <S.BorderTop>
+            <Container>
+              <History history={(user as any)?.history} />
+            </Container>
+          </S.BorderTop>
         </main>
       )}
     </>

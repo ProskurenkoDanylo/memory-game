@@ -18,10 +18,10 @@ export const InputWrapper = styled.div`
     top: 50%;
     transform: translateY(-50%);
     font-size: 20px;
-    &:first-child {
+    &.start-icon {
       left: 12px;
     }
-    &:last-child {
+    &.end-icon {
       right: 12px;
     }
   }
