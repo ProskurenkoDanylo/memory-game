@@ -1,4 +1,5 @@
-import { useContext } from 'react';
+import { useContext, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../../context/AuthContext';
 
 import { ClipLoader } from 'react-spinners';
@@ -16,34 +17,33 @@ import computerIcon from '../../assets/images/Home/computer.svg';
 import swordsIcon from '../../assets/images/Home/swords.png';
 
 function Home() {
+  const navigate = useNavigate();
   const { isAuthenticated, user, contextLoading } = useContext(AuthContext);
 
-  // const history = [
-  //   {
-  //     game_id: 'fsd',
-  //     opponent: 'opponentName',
-  //     scoreEarned: 2990,
-  //     mode: 'bomb',
-  //     movie: 'Avatar',
-  //     result: 'win',
-  //   },
-  //   {
-  //     game_id: 'fsd',
-  //     opponent: 'opponent2',
-  //     scoreEarned: 1112,
-  //     mode: 'bomb',
-  //     movie: 'Avatar',
-  //     result: 'draw',
-  //   },
-  //   {
-  //     game_id: 'fsd',
-  //     opponent: 'sus291',
-  //     scoreEarned: 3242,
-  //     mode: 'bomb',
-  //     movie: 'Avatar',
-  //     result: 'lose',
-  //   },
-  // ];
+  useEffect(() => {
+    const gameConfig = localStorage.getItem('config');
+    if (gameConfig) {
+      localStorage.setItem('config', '');
+    }
+  }, []);
+
+  const setMultiplayer = (multiplayer: Boolean) => {
+    localStorage.setItem('config', JSON.stringify({ multiplayer }));
+    navigate('/game/difficulty');
+  };
+
+  const quickStart = () => {
+    localStorage.setItem(
+      'config',
+      JSON.stringify({
+        multiplayer: Boolean(Math.floor(Math.random() * 2)),
+        difficulty: Math.floor(Math.random() * 3),
+        mode: Math.floor(Math.random() * 4),
+        category: 'Category', // TODO categories on server and random generate
+      })
+    );
+    navigate('/game/start');
+  };
 
   return (
     <>
@@ -72,19 +72,23 @@ function Home() {
             </Text>
             <S.GameStartButtons>
               <p>
-                <ButtonOrLink $endIcon={<img src={computerIcon} />}>
+                <ButtonOrLink
+                  $endIcon={<img src={computerIcon} />}
+                  onClick={() => setMultiplayer(false)}>
                   Start game
                 </ButtonOrLink>
               </p>
               <ButtonOrLink
                 $colors={['#c69a00']}
-                $endIcon={<img src={swordsIcon} />}>
+                $endIcon={<img src={swordsIcon} />}
+                onClick={() => setMultiplayer(true)}>
                 Start battle
               </ButtonOrLink>
               <Text alignment="center">OR</Text>
               <ButtonOrLink
                 $colors={['#0d66b1', '#c69a00']}
-                $colorsDirection={135}>
+                $colorsDirection={135}
+                onClick={quickStart}>
                 Quick start
               </ButtonOrLink>
             </S.GameStartButtons>
