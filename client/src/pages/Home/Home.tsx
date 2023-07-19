@@ -48,7 +48,7 @@ function Home() {
   return (
     <>
       <NavBar />
-      {contextLoading && false ? (
+      {contextLoading ? (
         <ClipLoader
           color="#00ffea"
           size={60}
@@ -57,7 +57,7 @@ function Home() {
             margin: '10px auto',
           }}
         />
-      ) : !isAuthenticated && false ? (
+      ) : !isAuthenticated ? (
         <Landing />
       ) : (
         <main>

@@ -4,7 +4,6 @@ export const DifficultyButtons = styled.div`
   margin: 5em 0;
   display: flex;
   flex-direction: column;
-  flex-basis: 0;
   align-items: center;
   gap: 30px;
 
