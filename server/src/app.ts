@@ -9,6 +9,7 @@ import MongoStore from 'connect-mongo';
 import 'dotenv/config';
 import usersRouter from './routes/users/users.route';
 import achievementsRouter from './routes/achievements/achievements.route';
+import categoriesRouter from './routes/categories/categoriers.route';
 
 import {
   primaryAuth,
@@ -52,6 +53,7 @@ app.use(passport.session());
 
 app.use('/users', usersRouter);
 app.use('/achievements', achievementsRouter);
+app.use('/categories', categoriesRouter);
 
 app.get('/auth/authenticated', (req: Request, res: Response) => {
   if ((req as any).isAuthenticated()) {
