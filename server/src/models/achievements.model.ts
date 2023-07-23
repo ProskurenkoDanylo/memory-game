@@ -28,8 +28,8 @@ async function getAchievementByTitle({ title }: { title: string }) {
 
 async function addAchievement({ title, image, description }: Achievement) {
   const database = client.db('memory-match-game');
-  const users = database.collection<Achievement>('achievements');
-  return await users
+  const achievements = database.collection<Achievement>('achievements');
+  return await achievements
     .insertOne({
       title,
       image,
