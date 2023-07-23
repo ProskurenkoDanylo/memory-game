@@ -4,6 +4,7 @@ import SignIn from '../pages/SignIn';
 import SignUp from '../pages/SignUp';
 import DifficultyChoosing from '../pages/DifficultyChoosing';
 import ModeChoosing from '../pages/ModeChoosing';
+import CategoryChoosing from '../pages/CategoryChoosing';
 
 export const routes = createBrowserRouter([
   {
@@ -25,5 +26,9 @@ export const routes = createBrowserRouter([
   {
     path: '/game/mode',
     element: <ModeChoosing />,
+  },
+  {
+    path: '/game/category',
+    element: <CategoryChoosing />,
   },
 ]);

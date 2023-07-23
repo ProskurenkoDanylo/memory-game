@@ -53,6 +53,16 @@ const loginUserByCredentials = async (username: string, password: string) => {
   });
 };
 
+const searchCategory = async (title: string) => {
+  return await fetch(`${API_URL}/categories/categories/${title}`, {
+    method: 'GET',
+    headers: {
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+    },
+  });
+};
+
 export {
   logoutUser,
   checkIfAuthenticated,
@@ -60,4 +70,5 @@ export {
   addUser,
   updateUser,
   loginUserByCredentials,
+  searchCategory,
 };

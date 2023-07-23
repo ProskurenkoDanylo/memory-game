@@ -26,6 +26,22 @@ async function getCategoryByTitle({ title }: { title: string }) {
   }));
 }
 
+async function searchCategories({ title }: { title: string }) {
+  const database = client.db('memory-match-game');
+  const categories = database.collection<Category>('categories');
+  const escapedTitle = title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const regexTitle = new RegExp(escapedTitle, 'i');
+  return await categories
+    .aggregate([
+      {
+        $match: {
+          title: regexTitle,
+        },
+      },
+    ])
+    .toArray();
+}
+
 async function addCategory({ title, mainImage, imageCollection }: Category) {
   const database = client.db('memory-match-game');
   const categories = database.collection<Category>('categories');
@@ -67,6 +83,7 @@ async function deleteCategory(category) {
 export {
   getAllCategories,
   getCategoryByTitle,
+  searchCategories,
   addCategory,
   updateCategory,
   deleteCategory,
