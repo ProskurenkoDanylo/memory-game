@@ -32,7 +32,7 @@ function ModeChoosing() {
       'config',
       JSON.stringify({ ...gameConfig, difficulty })
     );
-    navigate('/game/mode');
+    navigate('/game/category');
   };
 
   const quickStart = () => {
@@ -40,7 +40,6 @@ function ModeChoosing() {
       'config',
       JSON.stringify({
         ...gameConfig,
-        difficulty: Math.floor(Math.random() * 3),
         mode: Math.floor(Math.random() * 4),
         category: 'Category',
       })

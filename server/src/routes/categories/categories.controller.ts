@@ -6,6 +6,7 @@ import {
   addCategory,
   updateCategory,
   deleteCategory,
+  searchCategories,
 } from '../../models/category.model';
 
 async function httpGetAllCategories(req: Request, res: Response) {
@@ -24,6 +25,18 @@ async function httpGetCategoryByTitle(req: Request, res: Response) {
       error: 'Category not found.',
     });
   }
+}
+
+async function httpSearchCategoryByTitle(req: Request, res: Response) {
+  const title = req.params?.title;
+  if (!title) {
+    res.status(200).json([]);
+  }
+  const categories = await searchCategories({
+    title,
+  });
+
+  res.status(200).json(categories);
 }
 
 async function httpAddNewCategory(req: Request, res: Response) {
@@ -61,6 +74,7 @@ async function httpDeleteCategory(req: Request, res: Response) {
 export {
   httpGetAllCategories,
   httpGetCategoryByTitle,
+  httpSearchCategoryByTitle,
   httpAddNewCategory,
   httpUpdateCategory,
   httpDeleteCategory,
