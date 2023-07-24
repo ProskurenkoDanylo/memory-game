@@ -3,24 +3,13 @@ type Icon =
   | React.ReactElement<'svg'>
   | React.ReactElement<'i'>;
 
-export interface Input {
-  value: string | number;
-  name: string;
-  onChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
-
-  id?: string;
-  className?: string;
-  type?: 'text' | 'password' | 'email';
+export interface Input extends React.ComponentPropsWithoutRef<'input'> {
   label?: string;
-  placeholder?: string;
+  type?: 'text' | 'password' | 'email';
   isValid?: boolean | string;
   isRequired?: boolean;
   errorMessage?: string;
-  disabled?: boolean;
   style?: React.CSSProperties;
-  autoFocus?: boolean;
   startIcon?: Icon;
   endIcon?: Icon;
-  onBlur?: (event: React.FocusEvent<HTMLInputElement>) => void;
-  onFocus?: (event: React.FocusEvent<HTMLInputElement>) => void;
 }

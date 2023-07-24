@@ -12,19 +12,15 @@ function Input({
   type = 'text',
   value,
   name,
-  placeholder,
-  disabled,
   isRequired,
   style,
-  autoFocus,
   label,
   isValid,
   errorMessage,
   startIcon,
   endIcon,
   onChange,
-  onBlur,
-  onFocus,
+  ...props
 }: InputProps) {
   if (label) {
     if (!id) {
@@ -44,19 +40,15 @@ function Input({
           className={className}
           type={type}
           name={name}
-          placeholder={placeholder}
-          disabled={disabled}
           value={value}
           style={style}
           required={isRequired}
-          autoFocus={autoFocus}
           valid={isValid}
           onChange={onChange}
-          onBlur={onBlur}
-          onFocus={onFocus}
           hasStartIcon={startIcon ? true : false}
           hasEndIcon={startIcon ? true : false}
-          aria-invalid={!isValid}
+          aria-invalid={typeof isValid === 'boolean' ? !isValid : false}
+          {...props}
         />
         {endIcon ? addClassName(endIcon, 'end-icon') : null}
       </S.InputWrapper>

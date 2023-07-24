@@ -5,6 +5,7 @@ interface Category {
   title: string;
   mainImage: string;
   imageCollection: string[];
+  usage: number;
 }
 
 async function getAllCategories() {
@@ -12,6 +13,19 @@ async function getAllCategories() {
   const categories = database.collection<Category>('categories');
   return await categories
     .find()
+    .toArray()
+    .catch((err) => ({
+      error: err,
+    }));
+}
+
+async function getTop10Categories() {
+  const database = client.db('memory-match-game');
+  const categories = database.collection<Category>('categories');
+  return await categories
+    .find()
+    .sort({ usage: -1 })
+    .limit(10)
     .toArray()
     .catch((err) => ({
       error: err,
@@ -42,7 +56,12 @@ async function searchCategories({ title }: { title: string }) {
     .toArray();
 }
 
-async function addCategory({ title, mainImage, imageCollection }: Category) {
+async function addCategory({
+  title,
+  mainImage,
+  imageCollection,
+  usage,
+}: Category) {
   const database = client.db('memory-match-game');
   const categories = database.collection<Category>('categories');
   return await categories
@@ -50,6 +69,7 @@ async function addCategory({ title, mainImage, imageCollection }: Category) {
       title,
       mainImage,
       imageCollection,
+      usage,
     })
     .then((category) => category)
     .catch((err) => {
@@ -82,6 +102,7 @@ async function deleteCategory(category) {
 
 export {
   getAllCategories,
+  getTop10Categories,
   getCategoryByTitle,
   searchCategories,
   addCategory,

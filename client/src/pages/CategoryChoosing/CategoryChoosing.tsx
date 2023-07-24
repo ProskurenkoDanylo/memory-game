@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import { searchCategory } from '../../api';
+import { getTop10Categories, searchCategory } from '../../api';
 
 import NavBar from '../../components/layouts/NavBar';
 import ButtonOrLink from '../../ui/ButtonOrLink/ButtonOrLink';
@@ -32,15 +32,24 @@ function CategoryChoosing() {
     }
   }, []);
 
-  const fetchData = async () => {
+  useEffect(() => {
+    const fetchData = async () => {
+      return await getTop10Categories()
+        .then((res) => res.json())
+        .then((data) => setCategories(data));
+    };
+    fetchData();
+  }, []);
+
+  const fetchSearchCategories = async () => {
     if (!categorySearch) {
-      return [];
+      return await getTop10Categories().then((res) => res.json());
     }
     return await searchCategory(categorySearch).then((res) => res.json());
   };
 
   const searchCategories = async () => {
-    const results = await fetchData();
+    const results = await fetchSearchCategories();
     setCategories(results);
   };
 
@@ -72,11 +81,14 @@ function CategoryChoosing() {
             name="category"
             onChange={(e) => setCategorySearch(e.target.value)}
             onBlur={searchCategories}
+            onKeyDown={(e) =>
+              e.key === 'Enter' && (e.target as HTMLInputElement).blur()
+            }
             endIcon={<BiSearch />}
           />
           {categories && categories.length ? (
             <S.Categories>
-              {categories.map((el: Category) => (
+              {categories.slice(0, 8).map((el: Category) => (
                 <S.Category key={el._id} onClick={() => setCategory(el._id)}>
                   <img src={el.mainImage} alt={`${el.title} category image.`} />
                 </S.Category>

@@ -20,7 +20,6 @@ const getUser = async (username = '', email = '') => {
 };
 
 const addUser = async (user: User) => {
-  console.log(user);
   return await fetch(`${API_URL}/users/addNew`, {
     method: 'POST',
     headers: {
@@ -53,6 +52,16 @@ const loginUserByCredentials = async (username: string, password: string) => {
   });
 };
 
+const getTop10Categories = async () => {
+  return await fetch(`${API_URL}/categories/top10`, {
+    method: 'GET',
+    headers: {
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+    },
+  });
+};
+
 const searchCategory = async (title: string) => {
   return await fetch(`${API_URL}/categories/categories/${title}`, {
     method: 'GET',
@@ -70,5 +79,6 @@ export {
   addUser,
   updateUser,
   loginUserByCredentials,
+  getTop10Categories,
   searchCategory,
 };
