@@ -7,10 +7,16 @@ import {
   updateCategory,
   deleteCategory,
   searchCategories,
+  getTop10Categories,
 } from '../../models/category.model';
 
 async function httpGetAllCategories(req: Request, res: Response) {
   const categories = await getAllCategories();
+  res.status(200).json(categories);
+}
+
+async function httpGetTop10Categories(req: Request, res: Response) {
+  const categories = await getTop10Categories();
   res.status(200).json(categories);
 }
 
@@ -40,7 +46,7 @@ async function httpSearchCategoryByTitle(req: Request, res: Response) {
 }
 
 async function httpAddNewCategory(req: Request, res: Response) {
-  const { title, mainImage, imageCollection } = req.body;
+  const { title, mainImage, imageCollection, usage } = req.body;
 
   if (!title || !mainImage || !imageCollection) {
     res.status(400).json({
@@ -53,6 +59,7 @@ async function httpAddNewCategory(req: Request, res: Response) {
     title,
     mainImage,
     imageCollection,
+    usage,
   });
   res.status(201).json(category);
 }
@@ -73,6 +80,7 @@ async function httpDeleteCategory(req: Request, res: Response) {
 
 export {
   httpGetAllCategories,
+  httpGetTop10Categories,
   httpGetCategoryByTitle,
   httpSearchCategoryByTitle,
   httpAddNewCategory,
