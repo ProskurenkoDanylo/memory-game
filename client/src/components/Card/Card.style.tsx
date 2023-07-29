@@ -18,7 +18,7 @@ export const Card = styled.div<CardProps>`
   text-align: center;
   border: ${({ borderWidth, borderStyle, borderColor }: CardProps) =>
     `${borderWidth}px ${borderStyle} ${borderColor}`};
-  border-radius: 1.25em;
+  border-radius: 0.75em;
   transition: transform 0.4s;
   transform-style: preserve-3d;
   ${({ borderImageURL }: CardProps) => {
