@@ -1,3 +1,4 @@
+import GameConfig from './types/gameConfig';
 import User from './types/user';
 
 const API_URL = 'https://localhost:3000';
@@ -72,6 +73,17 @@ const searchCategory = async (title: string) => {
   });
 };
 
+const initializeGame = async (config: GameConfig) => {
+  return await fetch(`${API_URL}/games/initialize`, {
+    method: 'POST',
+    headers: {
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ config: config }),
+  });
+};
+
 export {
   logoutUser,
   checkIfAuthenticated,
@@ -81,4 +93,5 @@ export {
   loginUserByCredentials,
   getTop10Categories,
   searchCategory,
+  initializeGame,
 };

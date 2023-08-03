@@ -7,6 +7,7 @@ import session from 'express-session';
 import MongoStore from 'connect-mongo';
 
 import 'dotenv/config';
+
 import usersRouter from './routes/users/users.route';
 import achievementsRouter from './routes/achievements/achievements.route';
 import categoriesRouter from './routes/categories/categoriers.route';
@@ -18,6 +19,7 @@ import {
   serializeCallback,
   deserializeCallback,
 } from './auth';
+import gamesRouter from './routes/games/games.route';
 
 passport.use(primaryAuth);
 passport.use(googleAuthStrategy);
@@ -54,6 +56,7 @@ app.use(passport.session());
 app.use('/users', usersRouter);
 app.use('/achievements', achievementsRouter);
 app.use('/categories', categoriesRouter);
+app.use('/games', gamesRouter);
 
 app.get('/auth/authenticated', (req: Request, res: Response) => {
   if ((req as any).isAuthenticated()) {

@@ -7,6 +7,8 @@ import {
   deleteGame,
 } from '../../models/games.model';
 
+import createGame from '../../game';
+
 async function httpGetAllGames(req: Request, res: Response) {
   const games = await getAllGames();
   res.status(200).json(games);
@@ -45,4 +47,23 @@ async function httpDeleteGame(req: Request, res: Response) {
   });
 }
 
-export { httpGetAllGames, httpAddNewGame, httpUpdateGame, httpDeleteGame };
+async function httpInitializeGame(req: Request, res: Response) {
+  console.log(req.body);
+  const game = await createGame(req.body.config);
+
+  if ((game as any).error) {
+    res.status(500).json({
+      error: (game as any).error,
+    });
+  }
+
+  res.status(200).json(game);
+}
+
+export {
+  httpGetAllGames,
+  httpAddNewGame,
+  httpUpdateGame,
+  httpDeleteGame,
+  httpInitializeGame,
+};
