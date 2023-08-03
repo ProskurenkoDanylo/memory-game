@@ -27,11 +27,8 @@ function ModeChoosing() {
     }
   }, []);
 
-  const setDifficulty = (difficulty: number) => {
-    localStorage.setItem(
-      'config',
-      JSON.stringify({ ...gameConfig, difficulty })
-    );
+  const setMode = (mode: number) => {
+    localStorage.setItem('config', JSON.stringify({ ...gameConfig, mode }));
     navigate('/game/category');
   };
 
@@ -54,28 +51,28 @@ function ModeChoosing() {
         <Container>
           <h1>Choose mode</h1>
           <S.DifficultyButtons>
-            <ButtonOrLink $colors="#213068" onClick={() => setDifficulty(0)}>
+            <ButtonOrLink $colors="#213068" onClick={() => setMode(0)}>
               Classic
             </ButtonOrLink>
             <ButtonOrLink
               $colors="#213068"
               $startIcon={<img src={infinity} alt="" />}
               $endIcon={<img src={infinity} alt="" />}
-              onClick={() => setDifficulty(1)}>
+              onClick={() => setMode(1)}>
               Endless
             </ButtonOrLink>
             <ButtonOrLink
               $colors="#213068"
               $startIcon={<img src={bomb} alt="" />}
               $endIcon={<img src={bomb} alt="" />}
-              onClick={() => setDifficulty(2)}>
+              onClick={() => setMode(2)}>
               Bomb timer
             </ButtonOrLink>
             <ButtonOrLink
               $colors="#213068"
               $startIcon={<img src={superPowers} alt="" />}
               $endIcon={<img src={superPowers} alt="" />}
-              onClick={() => setDifficulty(3)}>
+              onClick={() => setMode(3)}>
               Super powers
             </ButtonOrLink>
             <Text alignment="center">OR</Text>

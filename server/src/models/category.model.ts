@@ -100,6 +100,55 @@ async function deleteCategory(category) {
     });
 }
 
+async function getRandomImages(categoryId: string | ObjectId, count: number) {
+  const id = new ObjectId(categoryId);
+  const randomImages = [];
+
+  const database = client.db('memory-match-game');
+  const categories = database.collection<Category>('categories');
+  const category = await categories.findOne({ _id: id });
+
+  if (category?.imageCollection === null) {
+    return {
+      error: `There is not images in this category.`,
+    };
+  }
+
+  if (category.imageCollection.length < count) {
+    return {
+      error: `There is not enough images in collection to generate ${count} different.`,
+    };
+  }
+
+  for (let imageInd = 0; imageInd < count; imageInd++) {
+    let image =
+      category.imageCollection[
+        generateRandomNumber(category.imageCollection.length)
+      ];
+    if (!randomImages.includes(image)) {
+      randomImages.push(image);
+    } else {
+      let imageInCollection = true;
+      while (imageInCollection) {
+        image =
+          category.imageCollection[
+            generateRandomNumber(category.imageCollection.length)
+          ];
+        if (!randomImages.includes(image)) {
+          imageInCollection = false;
+        }
+      }
+      randomImages.push(image);
+    }
+  }
+
+  return randomImages;
+}
+
+function generateRandomNumber(limit: number) {
+  return Math.floor(Math.random() * limit);
+}
+
 export {
   getAllCategories,
   getTop10Categories,
@@ -108,4 +157,5 @@ export {
   addCategory,
   updateCategory,
   deleteCategory,
+  getRandomImages,
 };

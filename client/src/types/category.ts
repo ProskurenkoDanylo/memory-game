@@ -1,5 +1,5 @@
 export default interface Category {
-  _id: number;
+  _id: string;
   title: string;
   mainImage: string;
   imageCollection: string[];

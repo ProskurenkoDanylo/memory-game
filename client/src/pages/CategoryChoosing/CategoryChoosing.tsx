@@ -19,14 +19,14 @@ function CategoryChoosing() {
   const navigate = useNavigate();
   const [categorySearch, setCategorySearch] = useState('');
   const [categories, setCategories] = useState<any>();
-  let gameConfig: GameConfig | null = null;
+  const [gameConfig, setGameConfig] = useState<GameConfig | null>(null);
 
   useEffect(() => {
     const configString = localStorage.getItem('config');
     if (configString !== null) {
-      gameConfig = JSON.parse(configString);
+      setGameConfig(JSON.parse(configString));
     }
-    if (!gameConfig || typeof gameConfig.multiplayer !== 'boolean') {
+    if (!configString) {
       localStorage.setItem('config', '');
       navigate('/');
     }
@@ -53,20 +53,18 @@ function CategoryChoosing() {
     setCategories(results);
   };
 
-  const setCategory = (category: number) => {
-    localStorage.setItem('config', JSON.stringify({ ...gameConfig, category }));
-    navigate('/game/mode');
+  const setCategory = (category: string) => {
+    const updatedConfig = { ...gameConfig, category };
+    setGameConfig(updatedConfig);
+    localStorage.setItem('config', JSON.stringify(updatedConfig));
+    navigate('/game');
   };
 
   const quickStart = () => {
-    localStorage.setItem(
-      'config',
-      JSON.stringify({
-        ...gameConfig,
-        category: 'Category',
-      })
-    );
-    navigate('/game/start');
+    const updatedConfig = { ...gameConfig, category: 'Category' };
+    setGameConfig(updatedConfig);
+    localStorage.setItem('config', JSON.stringify(updatedConfig));
+    navigate('/game');
   };
 
   return (

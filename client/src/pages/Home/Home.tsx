@@ -29,7 +29,11 @@ function Home() {
 
   const setMultiplayer = (multiplayer: Boolean) => {
     localStorage.setItem('config', JSON.stringify({ multiplayer }));
-    navigate('/game/difficulty');
+    if (multiplayer) {
+      navigate('/game/mode');
+    } else {
+      navigate('/game/difficulty');
+    }
   };
 
   const quickStart = () => {

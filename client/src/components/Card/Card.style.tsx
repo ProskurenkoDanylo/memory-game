@@ -21,20 +21,21 @@ export const Card = styled.div<CardProps>`
   border-radius: 0.75em;
   transition: transform 0.4s;
   transform-style: preserve-3d;
-  ${({ borderImageURL }: CardProps) => {
-    if (!borderImageURL) {
-      return ``;
-    }
-    if (borderImageURL) {
-      return `border-image-source: url(${borderImageURL});
+  overflow: hidden
+    ${({ borderImageURL }: CardProps) => {
+      if (!borderImageURL) {
+        return ``;
+      }
+      if (borderImageURL) {
+        return `border-image-source: url(${borderImageURL});
       border-image-slice: 32;
       border-image-repeat: round;
       div, img {
         border-radius: 0!important;
       }
       `;
-    }
-  }};
+      }
+    }};
 `;
 
 export const CardWrapper = styled.div`
@@ -70,7 +71,8 @@ export const CardFront = styled.div`
   ${sharedBetweenFrontAndBack}
 
   img {
-    width: 25%;
+    width: 100%;
+    object-fit: contain;
     user-select: none;
   }
 `;
@@ -83,7 +85,6 @@ export const CardBack = styled.div`
   img {
     width: 100%;
     height: 100%;
-    border-radius: 1.25em;
   }
 
   ${sharedBetweenFrontAndBack}
