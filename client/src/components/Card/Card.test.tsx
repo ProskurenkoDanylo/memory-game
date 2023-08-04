@@ -14,6 +14,7 @@ describe('<Card />', () => {
       borderImageURL: fireBorder,
     },
     opened: false,
+    disabled: false,
     onClick: jest.fn(),
   };
 

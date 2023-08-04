@@ -8,5 +8,6 @@ export interface Card {
   frontIconURL: string;
   back: string;
   opened: boolean;
+  disabled: boolean;
   onClick: () => void;
 }

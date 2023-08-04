@@ -1,9 +1,20 @@
 import * as S from './Card.style';
 import { Card as CardProps } from './Card.type';
 
-function Card({ frontIconURL, back, border, opened, onClick }: CardProps) {
+function Card({
+  frontIconURL,
+  back,
+  border,
+  opened,
+  disabled,
+  onClick,
+}: CardProps) {
   return (
-    <S.CardWrapper opened={opened} onClick={onClick} data-testid="card-wrapper">
+    <S.CardWrapper
+      opened={opened}
+      onClick={onClick}
+      disabled={disabled}
+      data-testid="card-wrapper">
       <S.Card
         borderWidth={border.borderWidth}
         borderStyle={border.borderStyle}
@@ -12,7 +23,7 @@ function Card({ frontIconURL, back, border, opened, onClick }: CardProps) {
         <S.CardFront>
           <img src={frontIconURL} alt="" />
         </S.CardFront>
-        <S.CardBack>
+        <S.CardBack className="card-back-image">
           <img src={back} alt="" data-testid="card-back-img" />
         </S.CardBack>
       </S.Card>
