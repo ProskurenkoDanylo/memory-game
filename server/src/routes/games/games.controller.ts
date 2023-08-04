@@ -48,7 +48,6 @@ async function httpDeleteGame(req: Request, res: Response) {
 }
 
 async function httpInitializeGame(req: Request, res: Response) {
-  console.log(req.body);
   const game = await createGame(req.body.config);
 
   if ((game as any).error) {

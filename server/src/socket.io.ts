@@ -1,30 +1,35 @@
 import { Server } from 'socket.io';
 
-let readyPlayerCount = 0;
+let savedCard = null;
+let savedIndexes = [];
+let comboCounter = 0;
 
 export function initializeSocketIo(server) {
   const io = new Server(server);
-  let room = null;
 
   io.on('connection', (socket) => {
-    console.log('A user connected.');
+    socket.on('cardClicked', (card, ind) => {
+      savedIndexes.push(ind);
+      if (savedCard === null) {
+        savedCard = card;
+      } else {
+        if (savedCard === card) {
+          io.emit('match', savedIndexes, comboCounter);
+          comboCounter += 1;
+        } else {
+          comboCounter = 0;
+          io.emit('no match', savedIndexes, comboCounter);
+        }
 
-    socket.on('ready', () => {
-      room = 'room' + Math.floor(readyPlayerCount / 2);
-      socket.join(room);
-
-      console.log('Player ready', socket.id, room);
-
-      readyPlayerCount++;
-
-      if (readyPlayerCount % 2 === 0) {
-        io.in(room).emit('startGame', socket.id);
+        savedCard = null;
+        savedIndexes = [];
       }
     });
 
-    socket.on('disconnect', (reason) => {
-      console.log(`Client ${socket.id} disconnected: ${reason}`);
-      socket.leave(room);
+    socket.on('disconnect', () => {
+      savedCard = null;
+      savedIndexes = [];
+      comboCounter = 0;
     });
   });
 }
