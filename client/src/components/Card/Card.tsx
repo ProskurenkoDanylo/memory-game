@@ -12,7 +12,7 @@ function Card({
   return (
     <S.CardWrapper
       opened={opened}
-      onClick={onClick}
+      onClick={onClick || undefined}
       disabled={disabled}
       data-testid="card-wrapper">
       <S.Card

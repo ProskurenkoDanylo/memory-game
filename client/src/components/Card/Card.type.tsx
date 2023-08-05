@@ -9,5 +9,5 @@ export interface Card {
   back: string;
   opened: boolean;
   disabled: boolean;
-  onClick: () => void;
+  onClick: (() => void) | null;
 }
