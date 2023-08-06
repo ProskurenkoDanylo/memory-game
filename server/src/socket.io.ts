@@ -6,8 +6,8 @@ let isMultiplayer = false;
 
 function createRoomAndStartGame(player1, player2, initialTurn) {
   const room = `room_${player1.id}_${player2.id}`;
-  rooms.set(player1.id, room);
-  rooms.set(player2.id, room);
+  rooms.set(player1.id, { room, numberOfPaired: 0, opponent: player2.id });
+  rooms.set(player2.id, { room, numberOfPaired: 0, opponent: player1.id });
   player1.join(room);
   player2.join(room);
   player1.emit('startGame');
@@ -21,25 +21,13 @@ function createRoomAndStartGame(player1, player2, initialTurn) {
   }
 }
 
-function changeTurns(io, id, initialTurn) {
-  console.log('Received turn', initialTurn);
-  const room = rooms.get(id);
-  const playersInRoom = [...io.sockets.adapter.rooms.get(room)];
-  if (initialTurn === 0) {
-    io.to(playersInRoom[0]).emit('Your turn');
-    io.to(playersInRoom[1]).emit('Opponent turn');
-  } else {
-    io.to(playersInRoom[1]).emit('Your turn');
-    io.to(playersInRoom[0]).emit('Opponent turn');
-  }
-}
-
 export function initializeSocketIo(server) {
   const io = new Server(server);
 
   io.on('connection', (socket) => {
     let savedCard = null;
     let savedIndexes = [];
+    let numberOfPaired = 0;
 
     socket.on('joinMultiplayer', (game) => {
       isMultiplayer = true;
@@ -58,7 +46,7 @@ export function initializeSocketIo(server) {
       savedIndexes.push(ind);
 
       if (isMultiplayer) {
-        const room = rooms.get(socket.id);
+        const { room } = rooms.get(socket.id);
         io.to(room).emit('cardClicked', ind);
       }
       if (savedCard === null) {
@@ -66,14 +54,35 @@ export function initializeSocketIo(server) {
       } else {
         if (savedCard === card) {
           if (isMultiplayer) {
-            const room = rooms.get(socket.id);
+            let { room, numberOfPaired, opponent } = rooms.get(socket.id);
+
+            numberOfPaired += 2;
+
+            rooms.set(socket.id, {
+              room,
+              numberOfPaired,
+              opponent,
+            });
+            rooms.set(opponent, {
+              room,
+              numberOfPaired,
+              opponent: socket.id,
+            });
+
             io.to(room).emit('match', savedIndexes);
+            if (numberOfPaired >= 16) {
+              io.to(room).emit('GameEnd');
+            }
           } else {
+            numberOfPaired += 2;
             socket.emit('match', savedIndexes);
+            if (numberOfPaired >= 16) {
+              socket.emit('GameEnd');
+            }
           }
         } else {
           if (isMultiplayer) {
-            const room = rooms.get(socket.id);
+            const { room } = rooms.get(socket.id);
             io.to(room).emit('no match', savedIndexes);
           } else {
             socket.emit('no match', savedIndexes);
@@ -87,7 +96,7 @@ export function initializeSocketIo(server) {
 
     socket.on('disconnect', () => {
       if (rooms.has(socket.id)) {
-        const room = rooms.get(socket.id);
+        const { room } = rooms.get(socket.id);
         rooms.delete(socket.id);
         socket.leave(room);
 
