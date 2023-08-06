@@ -21,6 +21,7 @@ const Multiplayer = ({ gameConfig }: { gameConfig: GameConfig | null }) => {
   const [opponentComboScore, setOpponentComboScore] = useState(0);
   const [cardsActive, setCardsActive] = useState<number[]>([]);
   const [playerTurn, setPlayerTurn] = useState(false);
+  const [playerWon, setPlayerWon] = useState<boolean | null>(null);
 
   const playerComboCounter = useRef(0); // for avoiding staleness in socket.io
   const opponentComboCounter = useRef(0); // for avoiding staleness in socket.io
@@ -141,6 +142,16 @@ const Multiplayer = ({ gameConfig }: { gameConfig: GameConfig | null }) => {
       }, 1200);
     });
 
+    socket.on('GameEnd', () => {
+      setTimeout(() => {
+        if (playerTurnRef.current) {
+          setPlayerWon(true);
+        } else {
+          setPlayerWon(false);
+        }
+      }, 1200);
+    });
+
     return () => {
       socket.disconnect();
     };
@@ -157,6 +168,7 @@ const Multiplayer = ({ gameConfig }: { gameConfig: GameConfig | null }) => {
       {game?.superPowers && <Text>Super Powers - Yes</Text>}
       {playerTurn ? <Text>My turn</Text> : <Text>Opponent turn</Text>}
       {/* TODO beautiful player battle */}
+      {playerWon !== null ? (playerWon ? 'You won' : 'Opponent won') : null}
       <Text alignment="center" fontWeight="bold">
         <FaFire color="#FF7A00" />
         Player Score:{' '}
