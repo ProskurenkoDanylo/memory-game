@@ -1,15 +1,14 @@
 import { useState, useEffect, useRef } from 'react';
 import socketIOClient from 'socket.io-client';
-import { FaFire } from 'react-icons/fa';
 
 import GameConfig from '../../types/gameConfig';
 import Container from '../../ui/Container';
-import Text from '../../ui/Text';
 import Card from '../../components/Card';
 import * as S from './GameScreen.style';
 
 import { initializeGame } from '../../api';
 import defaultCover from '../../assets/images/default-cover.svg';
+import PlayerBattleProfile from '../../components/PlayerBattleProfile';
 
 const socket = socketIOClient('https://localhost:3000');
 
@@ -163,37 +162,32 @@ const Multiplayer = ({ gameConfig }: { gameConfig: GameConfig | null }) => {
 
   return (
     <Container>
-      {game?.time && <Text>Time: {game.time}</Text>}
-      {game?.endless && <Text>Endless - Yes</Text>}
-      {game?.superPowers && <Text>Super Powers - Yes</Text>}
-      {playerTurn ? <Text>My turn</Text> : <Text>Opponent turn</Text>}
-      {/* TODO beautiful player battle */}
       {playerWon !== null ? (playerWon ? 'You won' : 'Opponent won') : null}
-      <Text alignment="center" fontWeight="bold">
-        <FaFire color="#FF7A00" />
-        Player Score:{' '}
-        <S.Score>
-          {playerScore}
-          {playerComboScore > 0 && (
-            <S.ComboScore key={playerComboScore} className="fade-out">
-              {` + ${playerComboScore}`}
-            </S.ComboScore>
-          )}
-        </S.Score>
-      </Text>
-      <Text alignment="center" fontWeight="bold">
-        <FaFire color="#FF7A00" />
-        Opponent Score:{' '}
-        <S.Score>
-          {opponentScore}
-          {opponentComboScore > 0 && (
-            <S.ComboScore key={opponentComboScore} className="fade-out">
-              {` + ${opponentComboScore}`}
-            </S.ComboScore>
-          )}
-        </S.Score>
-      </Text>
-      <Text alignment="center">Highscore: 44985</Text>
+      <S.Flex>
+        <PlayerBattleProfile
+          playerName="player 1"
+          playerProfileImg=""
+          playerAchievements={[]}
+          score={playerScore}
+          comboScore={playerComboScore}
+          align="left"
+          playerTurn={playerTurn}
+        />
+        {playerTurn ? (
+          <S.MyTurn color="#1f57ff" size="30" />
+        ) : (
+          <S.OpponentTurn color="#ff3131" size="30" />
+        )}
+        <PlayerBattleProfile
+          playerName="player 2"
+          playerProfileImg=""
+          playerAchievements={[]}
+          score={opponentScore}
+          comboScore={opponentComboScore}
+          align="right"
+          playerTurn={!playerTurn}
+        />
+      </S.Flex>
       <S.GameBoard>
         {game &&
           game.cards.map((el: any, ind: number) => (
