@@ -4,14 +4,20 @@ const waitingPlayers = [];
 const rooms = new Map();
 let isMultiplayer = false;
 
-function createRoomAndStartGame(player1, player2, initialTurn) {
+function createRoomAndStartGame(
+  player1,
+  player2,
+  initialTurn,
+  player1UserData,
+  player2UserData
+) {
   const room = `room_${player1.id}_${player2.id}`;
   rooms.set(player1.id, { room, numberOfPaired: 0, opponent: player2.id });
   rooms.set(player2.id, { room, numberOfPaired: 0, opponent: player1.id });
   player1.join(room);
   player2.join(room);
-  player1.emit('startGame');
-  player2.emit('startGame');
+  player1.emit('startGame', player2UserData);
+  player2.emit('startGame', player1UserData);
   if (initialTurn === 0) {
     player1.emit('Your turn');
     player2.emit('Opponent turn');
@@ -29,16 +35,22 @@ export function initializeSocketIo(server) {
     let savedIndexes = [];
     let numberOfPaired = 0;
 
-    socket.on('joinMultiplayer', (game) => {
+    socket.on('joinMultiplayer', (game, user) => {
       isMultiplayer = true;
       if (waitingPlayers.length === 0) {
-        waitingPlayers.push({ socket, game });
+        waitingPlayers.push({ socket, game, user });
         socket.emit('waitingForOpponent');
       } else {
         const opponent = waitingPlayers.shift();
         socket.emit('setCards', opponent.game);
         const initialTurn = Math.floor(Math.random() * 2);
-        createRoomAndStartGame(socket, opponent.socket, initialTurn);
+        createRoomAndStartGame(
+          socket,
+          opponent.socket,
+          initialTurn,
+          user,
+          opponent.user
+        );
       }
     });
 

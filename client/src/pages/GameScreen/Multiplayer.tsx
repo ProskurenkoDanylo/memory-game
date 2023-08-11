@@ -1,11 +1,12 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useContext } from 'react';
+import { useNavigate } from 'react-router-dom';
 import socketIOClient from 'socket.io-client';
 
+import { AuthContext } from '../../context/AuthContext';
 import GameConfig from '../../types/gameConfig';
 import Container from '../../ui/Container';
 import Card from '../../components/Card';
 import * as S from './GameScreen.style';
-
 import { initializeGame } from '../../api';
 import defaultCover from '../../assets/images/default-cover.svg';
 import PlayerBattleProfile from '../../components/PlayerBattleProfile';
@@ -13,7 +14,11 @@ import PlayerBattleProfile from '../../components/PlayerBattleProfile';
 const socket = socketIOClient('https://localhost:3000');
 
 const Multiplayer = ({ gameConfig }: { gameConfig: GameConfig | null }) => {
+  let navigate = useNavigate();
+  const { isAuthenticated, user, contextLoading } = useContext(AuthContext);
+
   const [game, setGame] = useState<any>(null);
+  const [opponent, setOpponent] = useState<any>(null);
   const [playerScore, setPlayerScore] = useState(0);
   const [opponentScore, setOpponentScore] = useState(0);
   const [playerComboScore, setPlayerComboScore] = useState(0);
@@ -27,6 +32,9 @@ const Multiplayer = ({ gameConfig }: { gameConfig: GameConfig | null }) => {
   const playerTurnRef = useRef(playerTurn); // for avoiding staleness in socket.io
 
   useEffect(() => {
+    if (!isAuthenticated) {
+      return navigate('/');
+    }
     if (gameConfig) {
       const fetchData = () => {
         return initializeGame(gameConfig as any)
@@ -41,7 +49,7 @@ const Multiplayer = ({ gameConfig }: { gameConfig: GameConfig | null }) => {
               })),
             };
             setGame(newData);
-            socket.emit('joinMultiplayer', newData);
+            socket.emit('joinMultiplayer', newData, user);
           });
       };
       fetchData();
@@ -53,8 +61,10 @@ const Multiplayer = ({ gameConfig }: { gameConfig: GameConfig | null }) => {
       console.log('waiting for opponent'); // TODO beautiful message (waiting)
     });
 
-    socket.on('startGame', () => {
+    socket.on('startGame', (opponentUserData) => {
       console.log('ready to start'); // TODO beautiful message (start)
+
+      setOpponent(opponentUserData);
     });
 
     socket.on('Your turn', () => {
@@ -165,8 +175,12 @@ const Multiplayer = ({ gameConfig }: { gameConfig: GameConfig | null }) => {
       {playerWon !== null ? (playerWon ? 'You won' : 'Opponent won') : null}
       <S.Flex>
         <PlayerBattleProfile
-          playerName="player 1"
-          playerProfileImg=""
+          playerName={(user as any)?.username.split('@')[0]}
+          playerProfileImg={
+            contextLoading
+              ? 'https://picsum.photos/200'
+              : (user as any)?.profileImg
+          }
           playerAchievements={[]}
           score={playerScore}
           comboScore={playerComboScore}
@@ -179,8 +193,8 @@ const Multiplayer = ({ gameConfig }: { gameConfig: GameConfig | null }) => {
           <S.OpponentTurn color="#ff3131" size="30" />
         )}
         <PlayerBattleProfile
-          playerName="player 2"
-          playerProfileImg=""
+          playerName={opponent?.username.split('@')[0]}
+          playerProfileImg={opponent?.profileImg}
           playerAchievements={[]}
           score={opponentScore}
           comboScore={opponentComboScore}
