@@ -69,3 +69,10 @@ export const OpponentTurn = styled(BsChevronRight)`
   align-self: flex-end;
   margin-block-end: 15px;
 `;
+
+export const WaitingForPlayer = styled.p`
+  font-size: clamp(1rem, 0.95rem + 0.25vw, 1.25rem);
+  font-weight: bold;
+  text-wrap: balance;
+  padding: 0 10px;
+`;

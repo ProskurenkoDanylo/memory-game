@@ -5,6 +5,7 @@ import * as S from './PlayerBattleProfile.style';
 
 import { PlayerBattleProfileProps } from './PlayerBattleProfileProps';
 import Text from '../../ui/Text';
+import userSearchGif from '../../assets/images/user-search.gif';
 
 const PlayerBattleProfile = ({
   score,
@@ -16,14 +17,21 @@ const PlayerBattleProfile = ({
   playerTurn,
 }: PlayerBattleProfileProps) => {
   return (
-    <S.Flex align={align} playerTurn={playerTurn}>
+    <S.Flex
+      align={align}
+      playerTurn={playerTurn}
+      playerHere={Boolean(playerName)}>
       <S.ProfileImg
-        src={playerProfileImg}
-        alt={`${playerName} profile picture`}
+        src={playerProfileImg || userSearchGif}
+        alt={
+          playerName
+            ? `${playerName} profile picture`
+            : 'Searching for opponent'
+        }
       />
       <div>
         <Text fontWeight="bold">
-          <FaFire color="#FF7A00" />{' '}
+          <FaFire color={playerName ? '#FF7A00' : '#9000ff'} />{' '}
           <S.Score>
             <CountUp start={0} end={score} delay={0} preserveValue />
             {comboScore > 0 && (
@@ -35,16 +43,24 @@ const PlayerBattleProfile = ({
         </Text>
         <S.PlayerBoard>
           <Text
-            color={align === 'left' ? '#1f57ff' : '#ff3131'}
+            color={
+              playerName
+                ? align === 'left'
+                  ? '#1f57ff'
+                  : '#ff3131'
+                : '#9000ff'
+            }
             fontWeight="bold">
-            {playerName}
+            {playerName || '??? ??? ???'}
           </Text>
           {playerAchievements.length ? (
             playerAchievements.map((achievement) => (
               <S.Achievement src={achievement.src} alt={achievement.text} />
             ))
           ) : (
-            <Text color="#808080">No achievements yet.</Text>
+            <Text color="#808080">
+              {playerName ? 'No achievements yet.' : '??? ??? ???'}
+            </Text>
           )}
         </S.PlayerBoard>
       </div>

@@ -10,8 +10,11 @@ import * as S from './GameScreen.style';
 import { initializeGame } from '../../api';
 import defaultCover from '../../assets/images/default-cover.svg';
 import PlayerBattleProfile from '../../components/PlayerBattleProfile';
+import BattleResults from '../../components/BatttleResults';
 
-const socket = socketIOClient('https://localhost:3000');
+const socket = socketIOClient('https://localhost:3000', {
+  autoConnect: false,
+});
 
 const Multiplayer = ({ gameConfig }: { gameConfig: GameConfig | null }) => {
   let navigate = useNavigate();
@@ -25,11 +28,23 @@ const Multiplayer = ({ gameConfig }: { gameConfig: GameConfig | null }) => {
   const [opponentComboScore, setOpponentComboScore] = useState(0);
   const [cardsActive, setCardsActive] = useState<number[]>([]);
   const [playerTurn, setPlayerTurn] = useState(false);
+  const [dots, setDots] = useState('...');
   const [playerWon, setPlayerWon] = useState<boolean | null>(null);
 
   const playerComboCounter = useRef(0); // for avoiding staleness in socket.io
   const opponentComboCounter = useRef(0); // for avoiding staleness in socket.io
   const playerTurnRef = useRef(playerTurn); // for avoiding staleness in socket.io
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (dots === '...') {
+        setDots('');
+      } else {
+        setDots((dots) => dots + '.');
+      }
+    }, 800);
+    return () => clearInterval(interval);
+  }, [dots]);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -40,15 +55,17 @@ const Multiplayer = ({ gameConfig }: { gameConfig: GameConfig | null }) => {
         return initializeGame(gameConfig as any)
           .then((res) => res.json())
           .then((data) => {
+            const { cards, ...config } = data;
             const newData = {
-              ...data,
-              cards: data.cards.map((el: any) => ({
+              cards: cards.map((el: any) => ({
                 image: el,
                 disabled: false,
                 opened: false,
               })),
+              config,
             };
             setGame(newData);
+            socket.connect();
             socket.emit('joinMultiplayer', newData, user);
           });
       };
@@ -57,13 +74,7 @@ const Multiplayer = ({ gameConfig }: { gameConfig: GameConfig | null }) => {
   }, [gameConfig]);
 
   useEffect(() => {
-    socket.on('waitingForOpponent', () => {
-      console.log('waiting for opponent'); // TODO beautiful message (waiting)
-    });
-
     socket.on('startGame', (opponentUserData) => {
-      console.log('ready to start'); // TODO beautiful message (start)
-
       setOpponent(opponentUserData);
     });
 
@@ -155,8 +166,10 @@ const Multiplayer = ({ gameConfig }: { gameConfig: GameConfig | null }) => {
       setTimeout(() => {
         if (playerTurnRef.current) {
           setPlayerWon(true);
+          localStorage.setItem('config', JSON.stringify({ multiplayer: true }));
         } else {
           setPlayerWon(false);
+          localStorage.setItem('config', JSON.stringify({ multiplayer: true }));
         }
       }, 1200);
     });
@@ -172,8 +185,22 @@ const Multiplayer = ({ gameConfig }: { gameConfig: GameConfig | null }) => {
 
   return (
     <Container>
-      {playerWon !== null ? (playerWon ? 'You won' : 'Opponent won') : null}
       <S.Flex>
+        {playerWon !== null ? (
+          playerWon ? (
+            <BattleResults
+              isWinner
+              winnerScore={playerScore}
+              opponentName={opponent?.username.split('@')[0]}
+            />
+          ) : (
+            <BattleResults
+              isWinner={false}
+              winnerScore={opponentScore}
+              opponentName={opponent?.username.split('@')[0]}
+            />
+          )
+        ) : null}
         <PlayerBattleProfile
           playerName={(user as any)?.username.split('@')[0]}
           playerProfileImg={
@@ -185,12 +212,16 @@ const Multiplayer = ({ gameConfig }: { gameConfig: GameConfig | null }) => {
           score={playerScore}
           comboScore={playerComboScore}
           align="left"
-          playerTurn={playerTurn}
+          playerTurn={opponent ? true : playerTurn}
         />
-        {playerTurn ? (
-          <S.MyTurn color="#1f57ff" size="30" />
+        {opponent ? (
+          playerTurn ? (
+            <S.MyTurn color="#1f57ff" size="30" />
+          ) : (
+            <S.OpponentTurn color="#ff3131" size="30" />
+          )
         ) : (
-          <S.OpponentTurn color="#ff3131" size="30" />
+          <S.WaitingForPlayer>Matching{dots}</S.WaitingForPlayer>
         )}
         <PlayerBattleProfile
           playerName={opponent?.username.split('@')[0]}
@@ -199,7 +230,7 @@ const Multiplayer = ({ gameConfig }: { gameConfig: GameConfig | null }) => {
           score={opponentScore}
           comboScore={opponentComboScore}
           align="right"
-          playerTurn={!playerTurn}
+          playerTurn={opponent ? true : !playerTurn}
         />
       </S.Flex>
       <S.GameBoard>
@@ -216,7 +247,7 @@ const Multiplayer = ({ gameConfig }: { gameConfig: GameConfig | null }) => {
               /* Preventing cheaters from web dev tools*/
               back={cardsActive.includes(ind) ? el.image : defaultCover}
               opened={el.opened}
-              disabled={el.disabled}
+              disabled={opponent ? el.disabled : true}
               onClick={
                 cardsActive.includes(ind) ||
                 cardsActive.length >= 2 ||

@@ -1,6 +1,7 @@
 import { Server } from 'socket.io';
+import isEqual from 'lodash/isequal';
 
-const waitingPlayers = [];
+let waitingPlayers = [];
 const rooms = new Map();
 let isMultiplayer = false;
 
@@ -34,23 +35,30 @@ export function initializeSocketIo(server) {
     let savedCard = null;
     let savedIndexes = [];
     let numberOfPaired = 0;
+    console.log('connect');
 
     socket.on('joinMultiplayer', (game, user) => {
       isMultiplayer = true;
-      if (waitingPlayers.length === 0) {
-        waitingPlayers.push({ socket, game, user });
-        socket.emit('waitingForOpponent');
-      } else {
-        const opponent = waitingPlayers.shift();
-        socket.emit('setCards', opponent.game);
+      const opponent = waitingPlayers.filter((el) =>
+        isEqual(el.game.config, game.config)
+      );
+
+      if (opponent.length) {
+        waitingPlayers = waitingPlayers.filter(
+          (el) => el.socket !== opponent[0].socket
+        );
+        socket.emit('setCards', opponent[0].game);
         const initialTurn = Math.floor(Math.random() * 2);
         createRoomAndStartGame(
           socket,
-          opponent.socket,
+          opponent[0].socket,
           initialTurn,
           user,
-          opponent.user
+          opponent[0].user
         );
+      } else {
+        waitingPlayers.push({ socket, game, user });
+        socket.emit('waitingForOpponent');
       }
     });
 
@@ -84,6 +92,7 @@ export function initializeSocketIo(server) {
             io.to(room).emit('match', savedIndexes);
             if (numberOfPaired >= 16) {
               io.to(room).emit('GameEnd');
+              io.to(room).disconnectSockets();
             }
           } else {
             numberOfPaired += 2;
@@ -107,6 +116,8 @@ export function initializeSocketIo(server) {
     });
 
     socket.on('disconnect', () => {
+      console.log('disconnect');
+      waitingPlayers = waitingPlayers.filter((el) => el.socket !== socket);
       if (rooms.has(socket.id)) {
         const { room } = rooms.get(socket.id);
         rooms.delete(socket.id);
