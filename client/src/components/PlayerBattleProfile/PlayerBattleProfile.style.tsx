@@ -40,6 +40,7 @@ export const PlayerBoard = styled.div`
 type FlexProps = {
   align: 'left' | 'right';
   playerTurn: boolean;
+  playerHere: boolean;
 };
 
 export const Flex = styled.div<FlexProps>`
@@ -69,13 +70,17 @@ export const Flex = styled.div<FlexProps>`
         `}
 
   ${ProfileImg} {
-    ${({ align }) =>
-      align === 'left'
-        ? css`
-            border: 1px solid #1f57ff;
-          `
+    ${({ playerHere, align }) =>
+      playerHere
+        ? align === 'left'
+          ? css`
+              border: 1px solid #1f57ff;
+            `
+          : css`
+              border: 1px solid #ff3131;
+            `
         : css`
-            border: 1px solid #ff3131;
+            border: 1px solid #9000ff;
           `}
   }
 
@@ -83,13 +88,17 @@ export const Flex = styled.div<FlexProps>`
     p {
       margin: 5px 0;
     }
-    ${({ align }) =>
-      align === 'left'
-        ? css`
-            border-color: #1f57ff;
-          `
+    ${({ playerHere, align }) =>
+      playerHere
+        ? align === 'left'
+          ? css`
+              border-bottom: 2px solid #1f57ff;
+            `
+          : css`
+              border-bottom: 2px solid #ff3131;
+            `
         : css`
-            border-color: #ff3131;
+            border-bottom: 2px solid #9000ff;
           `}
   }
 `;
