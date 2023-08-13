@@ -12,10 +12,12 @@ function ButtonOrLink({
   $startIcon,
   $endIcon,
   onClick,
+  className,
 }: ButtonOrLinkProps) {
   if (link) {
     return (
       <Link
+        className={className}
         to={link}
         $colors={$colors}
         $colorsDirection={$colorsDirection}
@@ -31,6 +33,7 @@ function ButtonOrLink({
   } else {
     return (
       <Button
+        className={className}
         $colors={$colors}
         $colorsDirection={$colorsDirection}
         $textColor={$textColor}

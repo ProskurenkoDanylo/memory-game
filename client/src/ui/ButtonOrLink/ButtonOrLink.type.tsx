@@ -14,4 +14,5 @@ export interface ButtonOrLink {
   link?: string;
   disabled?: boolean;
   onClick?: () => void;
+  className?: string;
 }
