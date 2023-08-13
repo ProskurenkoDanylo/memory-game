@@ -7,12 +7,8 @@ export const Modal = styled.div`
   height: 100%;
   width: 100%;
   background-color: rgba(0, 0, 0, 0.6);
-  padding: 50% 0;
   z-index: 999;
   text-align: center;
-  & > * {
-    margin: 10px auto;
-  }
 `;
 
 const sharedText = css`
@@ -28,4 +24,20 @@ export const WinText = styled.p`
 export const LooseText = styled.p`
   ${sharedText}
   color: #ff2f00;
+`;
+
+export const Centered = styled.div`
+  display: grid;
+  align-content: center;
+  justify-content: center;
+  height: 100%;
+  & > * {
+    margin: 10px auto;
+  }
+`;
+
+export const Buttons = styled.div`
+  & > :first-child {
+    margin-inline-end: 10px;
+  }
 `;

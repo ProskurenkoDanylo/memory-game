@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useContext } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import socketIOClient from 'socket.io-client';
 
@@ -185,22 +186,17 @@ const Multiplayer = ({ gameConfig }: { gameConfig: GameConfig | null }) => {
 
   return (
     <Container>
-      <S.Flex>
-        {playerWon !== null ? (
-          playerWon ? (
+      {playerWon !== null
+        ? createPortal(
             <BattleResults
-              isWinner
-              winnerScore={playerScore}
+              isWinner={playerWon}
+              winnerScore={playerWon ? playerScore : opponentScore}
               opponentName={opponent?.username.split('@')[0]}
-            />
-          ) : (
-            <BattleResults
-              isWinner={false}
-              winnerScore={opponentScore}
-              opponentName={opponent?.username.split('@')[0]}
-            />
+            />,
+            document.body
           )
-        ) : null}
+        : null}
+      <S.Flex>
         <PlayerBattleProfile
           playerName={(user as any)?.username.split('@')[0]}
           playerProfileImg={
