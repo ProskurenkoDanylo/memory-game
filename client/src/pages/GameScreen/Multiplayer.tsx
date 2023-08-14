@@ -32,6 +32,8 @@ const Multiplayer = ({ gameConfig }: { gameConfig: GameConfig | null }) => {
   const [dots, setDots] = useState('...');
   const [playerWon, setPlayerWon] = useState<boolean | null>(null);
 
+  const playerScoreRef = useRef(0); // for avoiding staleness in socket.io
+  const opponentScoreRef = useRef(0); // for avoiding staleness in socket.io
   const playerComboCounter = useRef(0); // for avoiding staleness in socket.io
   const opponentComboCounter = useRef(0); // for avoiding staleness in socket.io
   const playerTurnRef = useRef(playerTurn); // for avoiding staleness in socket.io
@@ -121,6 +123,7 @@ const Multiplayer = ({ gameConfig }: { gameConfig: GameConfig | null }) => {
           setPlayerScore((prev) => {
             const comboCounter = playerComboCounter.current;
             playerComboCounter.current += 1;
+            playerScoreRef.current = prev + 300 + comboCounter * 150;
             return prev + 300 + comboCounter * 150;
           });
         } else {
@@ -128,6 +131,7 @@ const Multiplayer = ({ gameConfig }: { gameConfig: GameConfig | null }) => {
           setOpponentScore((prev) => {
             const comboCounter = opponentComboCounter.current;
             opponentComboCounter.current += 1;
+            opponentScoreRef.current = prev + 300 + comboCounter * 150;
             return prev + 300 + comboCounter * 150;
           });
         }
@@ -165,9 +169,15 @@ const Multiplayer = ({ gameConfig }: { gameConfig: GameConfig | null }) => {
 
     socket.on('GameEnd', () => {
       setTimeout(() => {
-        if (playerTurnRef.current) {
+        if (playerScoreRef.current > opponentScoreRef.current) {
           setPlayerWon(true);
           localStorage.setItem('config', JSON.stringify({ multiplayer: true }));
+        } else if (playerScoreRef.current === opponentScoreRef.current) {
+          if (playerTurnRef.current) {
+            setPlayerWon(true);
+          } else {
+            setPlayerWon(false);
+          }
         } else {
           setPlayerWon(false);
           localStorage.setItem('config', JSON.stringify({ multiplayer: true }));

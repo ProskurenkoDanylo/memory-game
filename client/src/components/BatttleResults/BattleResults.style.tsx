@@ -1,4 +1,4 @@
-import styled, { css } from 'styled-components';
+import styled, { css, keyframes } from 'styled-components';
 
 export const Modal = styled.div`
   position: fixed;
@@ -7,11 +7,31 @@ export const Modal = styled.div`
   height: 100%;
   width: 100%;
   background-color: rgba(0, 0, 0, 0.6);
-  z-index: 999;
+  z-index: 30;
   text-align: center;
+  * {
+    position: relative;
+    z-index: 999;
+  }
+`;
+
+const scaleAndUnscale = keyframes`
+  0% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.5);
+  }
+
+  100% {
+    transform: scale(1);
+  }
 `;
 
 const sharedText = css`
+  animation: ${scaleAndUnscale} 700ms ease-in-out;
+  animation-iteration-count: 2;
   font-size: 2em;
   font-weight: bold;
 `;
