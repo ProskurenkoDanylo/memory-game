@@ -1,3 +1,6 @@
+import { useEffect } from 'react';
+
+import { winShoot, looseShoot } from './confetti.config';
 import ButtonOrLink from '../../ui/ButtonOrLink';
 import * as S from './BattleResults.style';
 import { BattleResultsProps } from './BattleResultsProps';
@@ -8,6 +11,18 @@ const BattleResults = ({
   opponentName,
   winnerScore,
 }: BattleResultsProps) => {
+  useEffect(() => {
+    if (isWinner) {
+      winShoot();
+      setTimeout(winShoot, 1000);
+      setTimeout(winShoot, 2000);
+    } else {
+      looseShoot();
+      setTimeout(looseShoot, 1000);
+      setTimeout(looseShoot, 2000);
+    }
+  }, []);
+
   return (
     <S.Modal>
       <S.Centered>
