@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useContext } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import socketIOClient from 'socket.io-client';
-import Countdown from 'react-countdown';
+import { useTimer } from 'react-timer-hook';
 
 import { AuthContext } from '../../context/AuthContext';
 import GameConfig from '../../types/gameConfig';
@@ -32,13 +32,56 @@ const Multiplayer = ({ gameConfig }: { gameConfig: GameConfig | null }) => {
   const [playerTurn, setPlayerTurn] = useState(false);
   const [dots, setDots] = useState('...');
   const [playerWon, setPlayerWon] = useState<boolean | null>(null);
-  const [timer, setTimer] = useState<number>(0);
+  const {
+    totalSeconds: playerTotalSeconds,
+    seconds: playerSeconds,
+    minutes: playerMinutes,
+    pause: playerTimerPause,
+    resume: playerTimerResume,
+    restart: playerTimerRestart,
+  } = useTimer({
+    autoStart: false,
+    expiryTimestamp: new Date(Date.now() + 30000),
+    onExpire: () => {
+      if (playerWon === null) {
+        playerTotalSecondsRef.current = 0;
+        opponent ? socket.emit('Timer End') : null;
+      }
+    },
+  });
+  const {
+    totalSeconds: opponentTotalSeconds,
+    seconds: opponentSeconds,
+    minutes: opponentMinutes,
+    pause: opponentTimerPause,
+    resume: opponentTimerResume,
+    restart: opponentTimerRestart,
+  } = useTimer({
+    autoStart: false,
+    expiryTimestamp: new Date(Date.now() + 30000),
+    onExpire: () => {
+      if (playerWon === null) {
+        opponentTotalSecondsRef.current = 0;
+        opponent ? socket.emit('Timer End') : null;
+      }
+    },
+  });
 
   const playerScoreRef = useRef(0); // for avoiding staleness in socket.io
   const opponentScoreRef = useRef(0); // for avoiding staleness in socket.io
   const playerComboCounter = useRef(0); // for avoiding staleness in socket.io
   const opponentComboCounter = useRef(0); // for avoiding staleness in socket.io
   const playerTurnRef = useRef(playerTurn); // for avoiding staleness in socket.io
+  const playerTotalSecondsRef = useRef(33); // for avoiding staleness in socket.io
+  const opponentTotalSecondsRef = useRef(33); // for avoiding staleness in socket.io
+
+  useEffect(() => {
+    playerTotalSecondsRef.current = playerTotalSeconds;
+  }, [playerTotalSeconds]);
+
+  useEffect(() => {
+    opponentTotalSecondsRef.current = opponentTotalSeconds;
+  }, [opponentTotalSeconds]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -79,20 +122,28 @@ const Multiplayer = ({ gameConfig }: { gameConfig: GameConfig | null }) => {
   }, [gameConfig]);
 
   useEffect(() => {
-    socket.on('startGame', (opponentUserData) => {
+    socket.on('startGame', (gameConfig, opponentUserData) => {
       setOpponent(opponentUserData);
-      if (game.config?.time) {
-        setTimer(Date.now() + game.config.time * 1000);
+      if (gameConfig.time) {
+        const timer = Date.now() + gameConfig.time * 1000;
+        playerTotalSecondsRef.current = gameConfig.time;
+        opponentTotalSecondsRef.current = gameConfig.time;
+        playerTimerRestart(new Date(timer), true);
+        opponentTimerRestart(new Date(timer), true);
       }
     });
 
     socket.on('Your turn', () => {
       playerTurnRef.current = true;
+      playerTimerResume();
+      opponentTimerPause();
       setPlayerTurn(true);
     });
 
     socket.on('Opponent turn', () => {
       playerTurnRef.current = false;
+      opponentTimerResume();
+      playerTimerPause();
       setPlayerTurn(false);
     });
 
@@ -112,6 +163,17 @@ const Multiplayer = ({ gameConfig }: { gameConfig: GameConfig | null }) => {
     });
 
     socket.on('match', (cardIds) => {
+      if (playerTurnRef.current) {
+        playerTimerRestart(
+          new Date(Date.now() + playerTotalSecondsRef.current * 1000 + 10000)
+        );
+        playerTotalSecondsRef.current += 10;
+      } else {
+        opponentTimerRestart(
+          new Date(Date.now() + opponentTotalSecondsRef.current * 1000 + 10000)
+        );
+        opponentTotalSecondsRef.current += 10;
+      }
       // timeout for remembering cards by player
       setTimeout(() => {
         setGame((prev: any) => {
@@ -150,8 +212,22 @@ const Multiplayer = ({ gameConfig }: { gameConfig: GameConfig | null }) => {
     socket.on('no match', (cardIds) => {
       if (playerTurnRef.current) {
         playerComboCounter.current = 0;
+        const newPlayerTimer =
+          playerTotalSecondsRef.current < 5
+            ? new Date(Date.now())
+            : new Date(Date.now() + (playerTotalSecondsRef.current - 5) * 1000);
+        playerTotalSecondsRef.current -= 5;
+        playerTimerRestart(newPlayerTimer);
       } else {
         opponentComboCounter.current = 0;
+        const newOpponentTimer =
+          opponentTotalSecondsRef.current < 5
+            ? new Date(Date.now())
+            : new Date(
+                Date.now() + (opponentTotalSecondsRef.current - 5) * 1000
+              );
+        opponentTotalSecondsRef.current -= 5;
+        opponentTimerRestart(newOpponentTimer);
       }
 
       // timeout for remembering cards by player
@@ -163,6 +239,17 @@ const Multiplayer = ({ gameConfig }: { gameConfig: GameConfig | null }) => {
           return newData;
         });
         playerTurnRef.current = !playerTurnRef.current;
+        if (playerTurnRef.current) {
+          playerTimerRestart(
+            new Date(Date.now() + playerTotalSecondsRef.current * 1000)
+          );
+          opponentTimerPause();
+        } else {
+          opponentTimerRestart(
+            new Date(Date.now() + opponentTotalSecondsRef.current * 1000)
+          );
+          playerTimerPause();
+        }
         setPlayerTurn((prev) => !prev);
       }, 1000);
 
@@ -170,6 +257,14 @@ const Multiplayer = ({ gameConfig }: { gameConfig: GameConfig | null }) => {
       setTimeout(() => {
         setCardsActive([]);
       }, 1200);
+    });
+
+    socket.on('Timer End', () => {
+      if (playerTotalSecondsRef.current === 0) {
+        setPlayerWon(false);
+      } else {
+        setPlayerWon(true);
+      }
     });
 
     socket.on('GameEnd', () => {
@@ -199,24 +294,6 @@ const Multiplayer = ({ gameConfig }: { gameConfig: GameConfig | null }) => {
     socket.emit('cardClicked', el, ind);
   };
 
-  const onTimerEnd = () => {
-    setPlayerWon(playerTurn ? true : false);
-  };
-
-  const timerRenderer = ({
-    formatted,
-  }: {
-    minutes: number;
-    seconds: number;
-    formatted: any;
-  }) => {
-    return (
-      <S.Timer>
-        {formatted.minutes}:{formatted.seconds}
-      </S.Timer>
-    );
-  };
-
   return (
     <Container>
       {playerWon !== null
@@ -241,19 +318,10 @@ const Multiplayer = ({ gameConfig }: { gameConfig: GameConfig | null }) => {
           score={playerScore}
           comboScore={playerComboScore}
           align="left"
-          playerTurn={opponent ? true : playerTurn}
+          playerTurn={!opponent ? true : playerTurn}
+          timer={opponent && { minutes: playerMinutes, seconds: playerSeconds }}
         />
         <div>
-          {timer ? (
-            <>
-              💣{' '}
-              <Countdown
-                date={timer}
-                renderer={timerRenderer}
-                onComplete={onTimerEnd}
-              />
-            </>
-          ) : null}
           {opponent ? (
             playerTurn ? (
               <S.MyTurn color="#1f57ff" size="30" />
@@ -271,7 +339,10 @@ const Multiplayer = ({ gameConfig }: { gameConfig: GameConfig | null }) => {
           score={opponentScore}
           comboScore={opponentComboScore}
           align="right"
-          playerTurn={opponent ? true : !playerTurn}
+          playerTurn={!opponent ? true : !playerTurn}
+          timer={
+            opponent && { minutes: opponentMinutes, seconds: opponentSeconds }
+          }
         />
       </S.Flex>
       <S.GameBoard>

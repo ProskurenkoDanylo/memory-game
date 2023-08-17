@@ -9,4 +9,8 @@ export interface PlayerBattleProfileProps {
   }[];
   align: 'left' | 'right';
   playerTurn: boolean;
+  timer?: {
+    seconds: number;
+    minutes: number;
+  };
 }

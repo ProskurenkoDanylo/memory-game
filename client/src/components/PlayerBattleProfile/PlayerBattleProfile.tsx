@@ -15,6 +15,7 @@ const PlayerBattleProfile = ({
   playerAchievements,
   align,
   playerTurn,
+  timer,
 }: PlayerBattleProfileProps) => {
   return (
     <S.Flex
@@ -40,6 +41,11 @@ const PlayerBattleProfile = ({
               </S.ComboScore>
             )}
           </S.Score>
+          {timer ? (
+            <>
+              💣 {timer.minutes}:{timer.seconds}
+            </>
+          ) : null}
         </Text>
         <S.PlayerBoard>
           <Text

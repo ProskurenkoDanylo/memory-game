@@ -43,7 +43,7 @@ function Home() {
         multiplayer: Boolean(Math.floor(Math.random() * 2)),
         difficulty: Math.floor(Math.random() * 3),
         mode: Math.floor(Math.random() * 4),
-        category: 'Category', // TODO categories on server and random generate
+        category: 'Category',
       })
     );
     navigate('/game/start');
