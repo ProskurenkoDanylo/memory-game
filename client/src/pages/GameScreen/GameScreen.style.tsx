@@ -78,7 +78,8 @@ export const WaitingForPlayer = styled.p`
 `;
 
 export const Timer = styled.span`
-  font-size: clamp(1rem, 0.95rem + 0.25vw, 1.25rem);
+  font-size: 1.3rem;
   color: #fff;
   font-weight: bold;
+  text-align: center;
 `;

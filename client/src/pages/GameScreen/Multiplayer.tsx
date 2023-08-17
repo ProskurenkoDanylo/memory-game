@@ -199,6 +199,10 @@ const Multiplayer = ({ gameConfig }: { gameConfig: GameConfig | null }) => {
     socket.emit('cardClicked', el, ind);
   };
 
+  const onTimerEnd = () => {
+    setPlayerWon(playerTurn ? true : false);
+  };
+
   const timerRenderer = ({
     formatted,
   }: {
@@ -242,7 +246,12 @@ const Multiplayer = ({ gameConfig }: { gameConfig: GameConfig | null }) => {
         <div>
           {timer ? (
             <>
-              💣 <Countdown date={timer} renderer={timerRenderer} />
+              💣{' '}
+              <Countdown
+                date={timer}
+                renderer={timerRenderer}
+                onComplete={onTimerEnd}
+              />
             </>
           ) : null}
           {opponent ? (
