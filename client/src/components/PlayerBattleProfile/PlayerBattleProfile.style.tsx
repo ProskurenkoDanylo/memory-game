@@ -107,3 +107,10 @@ export const Achievement = styled.img`
   width: 25px;
   height: 25px;
 `;
+
+export const Timer = styled.span`
+  font-size: 1.3rem;
+  color: #fff;
+  font-weight: bold;
+  text-align: center;
+`;

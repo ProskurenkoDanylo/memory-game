@@ -23,7 +23,7 @@ async function createGame(config) {
     game.endless = true;
   } else if (mode === 2 && multiplayer) {
     game.multiplayerTimer = true;
-    game.time = 60 * 2; // in seconds
+    game.time = 30; // in seconds
   } else if (mode === 3) {
     game.superPowers = true;
   }

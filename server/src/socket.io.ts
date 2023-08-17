@@ -6,6 +6,7 @@ const rooms = new Map();
 let isMultiplayer = false;
 
 function createRoomAndStartGame(
+  gameConfig,
   player1,
   player2,
   initialTurn,
@@ -17,8 +18,8 @@ function createRoomAndStartGame(
   rooms.set(player2.id, { room, numberOfPaired: 0, opponent: player1.id });
   player1.join(room);
   player2.join(room);
-  player1.emit('startGame', player2UserData);
-  player2.emit('startGame', player1UserData);
+  player1.emit('startGame', gameConfig, player2UserData);
+  player2.emit('startGame', gameConfig, player1UserData);
   if (initialTurn === 0) {
     player1.emit('Your turn');
     player2.emit('Opponent turn');
@@ -50,6 +51,7 @@ export function initializeSocketIo(server) {
         socket.emit('setCards', opponent[0].game);
         const initialTurn = Math.floor(Math.random() * 2);
         createRoomAndStartGame(
+          game.config,
           socket,
           opponent[0].socket,
           initialTurn,
@@ -59,6 +61,13 @@ export function initializeSocketIo(server) {
       } else {
         waitingPlayers.push({ socket, game, user });
         socket.emit('waitingForOpponent');
+      }
+    });
+
+    socket.on('Timer End', () => {
+      if (isMultiplayer) {
+        const { room } = rooms.get(socket.id);
+        io.to(room).emit('Timer End');
       }
     });
 
