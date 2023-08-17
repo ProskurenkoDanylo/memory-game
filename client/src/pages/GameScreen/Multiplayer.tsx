@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useContext } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import socketIOClient from 'socket.io-client';
+import Countdown from 'react-countdown';
 
 import { AuthContext } from '../../context/AuthContext';
 import GameConfig from '../../types/gameConfig';
@@ -31,6 +32,7 @@ const Multiplayer = ({ gameConfig }: { gameConfig: GameConfig | null }) => {
   const [playerTurn, setPlayerTurn] = useState(false);
   const [dots, setDots] = useState('...');
   const [playerWon, setPlayerWon] = useState<boolean | null>(null);
+  const [timer, setTimer] = useState<number>(0);
 
   const playerScoreRef = useRef(0); // for avoiding staleness in socket.io
   const opponentScoreRef = useRef(0); // for avoiding staleness in socket.io
@@ -79,6 +81,9 @@ const Multiplayer = ({ gameConfig }: { gameConfig: GameConfig | null }) => {
   useEffect(() => {
     socket.on('startGame', (opponentUserData) => {
       setOpponent(opponentUserData);
+      if (game.config?.time) {
+        setTimer(Date.now() + game.config.time * 1000);
+      }
     });
 
     socket.on('Your turn', () => {
@@ -194,6 +199,20 @@ const Multiplayer = ({ gameConfig }: { gameConfig: GameConfig | null }) => {
     socket.emit('cardClicked', el, ind);
   };
 
+  const timerRenderer = ({
+    formatted,
+  }: {
+    minutes: number;
+    seconds: number;
+    formatted: any;
+  }) => {
+    return (
+      <S.Timer>
+        {formatted.minutes}:{formatted.seconds}
+      </S.Timer>
+    );
+  };
+
   return (
     <Container>
       {playerWon !== null
@@ -220,15 +239,22 @@ const Multiplayer = ({ gameConfig }: { gameConfig: GameConfig | null }) => {
           align="left"
           playerTurn={opponent ? true : playerTurn}
         />
-        {opponent ? (
-          playerTurn ? (
-            <S.MyTurn color="#1f57ff" size="30" />
+        <div>
+          {timer ? (
+            <>
+              💣 <Countdown date={timer} renderer={timerRenderer} />
+            </>
+          ) : null}
+          {opponent ? (
+            playerTurn ? (
+              <S.MyTurn color="#1f57ff" size="30" />
+            ) : (
+              <S.OpponentTurn color="#ff3131" size="30" />
+            )
           ) : (
-            <S.OpponentTurn color="#ff3131" size="30" />
-          )
-        ) : (
-          <S.WaitingForPlayer>Matching{dots}</S.WaitingForPlayer>
-        )}
+            <S.WaitingForPlayer>Matching{dots}</S.WaitingForPlayer>
+          )}
+        </div>
         <PlayerBattleProfile
           playerName={opponent?.username.split('@')[0]}
           playerProfileImg={opponent?.profileImg}
