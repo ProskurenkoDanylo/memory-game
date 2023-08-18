@@ -1,5 +1,4 @@
 import styled, { keyframes } from 'styled-components';
-import { BsChevronRight, BsChevronLeft } from 'react-icons/bs';
 
 export const GameBoard = styled.div`
   width: 100%;
@@ -58,16 +57,6 @@ export const Flex = styled.div`
   justify-content: space-between;
   align-items: center;
   margin-bottom: 50px;
-`;
-
-export const MyTurn = styled(BsChevronLeft)`
-  align-self: flex-end;
-  margin-block-end: 15px;
-`;
-
-export const OpponentTurn = styled(BsChevronRight)`
-  align-self: flex-end;
-  margin-block-end: 15px;
 `;
 
 export const WaitingForPlayer = styled.p`
