@@ -1,18 +1,23 @@
-import { useState, useEffect, useRef, useContext } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import socketIOClient from 'socket.io-client';
 import { useTimer } from 'react-timer-hook';
-
 import { AuthContext } from '../../context/AuthContext';
-import GameConfig from '../../types/gameConfig';
-import Container from '../../ui/Container';
-import Card from '../../components/Card';
-import * as S from './GameScreen.style';
 import { initializeGame } from '../../api';
-import defaultCover from '../../assets/images/default-cover.svg';
-import PlayerBattleProfile from '../../components/PlayerBattleProfile';
+
+import Card from '../../components/Card';
+import Container from '../../ui/Container';
+import TurnSwitch from '../../components/TurnSwitch';
 import BattleResults from '../../components/BatttleResults';
+import PlayerBattleProfile from '../../components/PlayerBattleProfile';
+
+import User from '../../types/user';
+import GameConfig from '../../types/gameConfig';
+import PlayerStats from '../../types/playerStats';
+
+import * as S from './GameScreen.style';
+import defaultCover from '../../assets/images/default-cover.svg';
 
 const socket = socketIOClient('https://localhost:3000', {
   autoConnect: false,
@@ -23,15 +28,32 @@ const Multiplayer = ({ gameConfig }: { gameConfig: GameConfig | null }) => {
   const { isAuthenticated, user, contextLoading } = useContext(AuthContext);
 
   const [game, setGame] = useState<any>(null);
+  const [dots, setDots] = useState('...');
   const [opponent, setOpponent] = useState<any>(null);
-  const [playerScore, setPlayerScore] = useState(0);
-  const [opponentScore, setOpponentScore] = useState(0);
-  const [playerComboScore, setPlayerComboScore] = useState(0);
-  const [opponentComboScore, setOpponentComboScore] = useState(0);
   const [cardsActive, setCardsActive] = useState<number[]>([]);
   const [playerTurn, setPlayerTurn] = useState(false);
-  const [dots, setDots] = useState('...');
   const [playerWon, setPlayerWon] = useState<boolean | null>(null);
+  const [playerStats, setPlayerStats] = useState<PlayerStats>({
+    score: 0,
+    comboCounter: 0,
+    comboScore: 0,
+  });
+  const [opponentStats, setOpponentStats] = useState<PlayerStats>({
+    score: 0,
+    comboCounter: 0,
+    comboScore: 0,
+  });
+
+  const timerConfig = {
+    autoStart: false,
+    expiryTimestamp: new Date(Date.now() + 30000),
+    onExpire: () => {
+      if (playerWon === null) {
+        opponent ? socket.emit('Timer End') : null;
+      }
+    },
+  };
+
   const {
     totalSeconds: playerTotalSeconds,
     seconds: playerSeconds,
@@ -39,16 +61,7 @@ const Multiplayer = ({ gameConfig }: { gameConfig: GameConfig | null }) => {
     pause: playerTimerPause,
     resume: playerTimerResume,
     restart: playerTimerRestart,
-  } = useTimer({
-    autoStart: false,
-    expiryTimestamp: new Date(Date.now() + 30000),
-    onExpire: () => {
-      if (playerWon === null) {
-        playerTotalSecondsRef.current = 0;
-        opponent ? socket.emit('Timer End') : null;
-      }
-    },
-  });
+  } = useTimer(timerConfig);
   const {
     totalSeconds: opponentTotalSeconds,
     seconds: opponentSeconds,
@@ -56,32 +69,7 @@ const Multiplayer = ({ gameConfig }: { gameConfig: GameConfig | null }) => {
     pause: opponentTimerPause,
     resume: opponentTimerResume,
     restart: opponentTimerRestart,
-  } = useTimer({
-    autoStart: false,
-    expiryTimestamp: new Date(Date.now() + 30000),
-    onExpire: () => {
-      if (playerWon === null) {
-        opponentTotalSecondsRef.current = 0;
-        opponent ? socket.emit('Timer End') : null;
-      }
-    },
-  });
-
-  const playerScoreRef = useRef(0); // for avoiding staleness in socket.io
-  const opponentScoreRef = useRef(0); // for avoiding staleness in socket.io
-  const playerComboCounter = useRef(0); // for avoiding staleness in socket.io
-  const opponentComboCounter = useRef(0); // for avoiding staleness in socket.io
-  const playerTurnRef = useRef(playerTurn); // for avoiding staleness in socket.io
-  const playerTotalSecondsRef = useRef(33); // for avoiding staleness in socket.io
-  const opponentTotalSecondsRef = useRef(33); // for avoiding staleness in socket.io
-
-  useEffect(() => {
-    playerTotalSecondsRef.current = playerTotalSeconds;
-  }, [playerTotalSeconds]);
-
-  useEffect(() => {
-    opponentTotalSecondsRef.current = opponentTotalSeconds;
-  }, [opponentTotalSeconds]);
+  } = useTimer(timerConfig);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -119,35 +107,35 @@ const Multiplayer = ({ gameConfig }: { gameConfig: GameConfig | null }) => {
       };
       fetchData();
     }
+
+    return () => {
+      socket.disconnect();
+    };
   }, [gameConfig]);
 
   useEffect(() => {
-    socket.on('startGame', (gameConfig, opponentUserData) => {
+    const startGame = (
+      gameConfig: { time: number },
+      opponentUserData: User
+    ) => {
       setOpponent(opponentUserData);
       if (gameConfig.time) {
         const timer = Date.now() + gameConfig.time * 1000;
-        playerTotalSecondsRef.current = gameConfig.time;
-        opponentTotalSecondsRef.current = gameConfig.time;
         playerTimerRestart(new Date(timer), true);
         opponentTimerRestart(new Date(timer), true);
       }
-    });
-
-    socket.on('Your turn', () => {
-      playerTurnRef.current = true;
+    };
+    const yourTurn = () => {
       playerTimerResume();
       opponentTimerPause();
       setPlayerTurn(true);
-    });
-
-    socket.on('Opponent turn', () => {
-      playerTurnRef.current = false;
+    };
+    const opponentTurn = () => {
       opponentTimerResume();
       playerTimerPause();
       setPlayerTurn(false);
-    });
-
-    socket.on('cardClicked', (ind) => {
+    };
+    const cardClicked = (ind: number) => {
       setGame((prev: any) => {
         const newData = { ...prev };
         newData.cards[ind].opened = true;
@@ -155,26 +143,12 @@ const Multiplayer = ({ gameConfig }: { gameConfig: GameConfig | null }) => {
       });
 
       setCardsActive((prev) => [...prev, ind]);
-    });
-
-    // Sets the game to be equal in both players based on one of those who connected first
-    socket.on('setCards', (game) => {
-      setGame(game);
-    });
-
-    socket.on('match', (cardIds) => {
-      if (playerTurnRef.current) {
-        playerTimerRestart(
-          new Date(Date.now() + playerTotalSecondsRef.current * 1000 + 10000)
-        );
-        playerTotalSecondsRef.current += 10;
-      } else {
-        opponentTimerRestart(
-          new Date(Date.now() + opponentTotalSecondsRef.current * 1000 + 10000)
-        );
-        opponentTotalSecondsRef.current += 10;
-      }
+    };
+    const setCards = (game: GameConfig) => setGame(game);
+    const match = (cardIds: number[]) => {
       // timeout for remembering cards by player
+      playerTimerPause();
+      opponentTimerPause();
       setTimeout(() => {
         setGame((prev: any) => {
           const newData = { ...prev };
@@ -185,52 +159,39 @@ const Multiplayer = ({ gameConfig }: { gameConfig: GameConfig | null }) => {
           return newData;
         });
 
-        if (playerTurnRef.current) {
-          setPlayerComboScore(playerComboCounter.current * 150);
-          setPlayerScore((prev) => {
-            const comboCounter = playerComboCounter.current;
-            playerComboCounter.current += 1;
-            playerScoreRef.current = prev + 300 + comboCounter * 150;
-            return prev + 300 + comboCounter * 150;
-          });
+        if (playerTurn) {
+          setPlayerStats((prev) => ({
+            comboScore: prev.comboCounter * 150,
+            comboCounter: prev.comboCounter + 1,
+            score: prev.score + 300 + prev.comboCounter * 150,
+          }));
         } else {
-          setOpponentComboScore(opponentComboCounter.current * 150);
-          setOpponentScore((prev) => {
-            const comboCounter = opponentComboCounter.current;
-            opponentComboCounter.current += 1;
-            opponentScoreRef.current = prev + 300 + comboCounter * 150;
-            return prev + 300 + comboCounter * 150;
-          });
+          setOpponentStats((prev) => ({
+            comboScore: prev.comboCounter * 150,
+            comboCounter: prev.comboCounter + 1,
+            score: prev.score + 300 + prev.comboCounter * 150,
+          }));
         }
       }, 1000);
 
       setTimeout(() => {
+        if (playerTurn) {
+          playerTimerRestart(
+            new Date(Date.now() + playerTotalSeconds * 1000 + 10000)
+          );
+        } else {
+          opponentTimerRestart(
+            new Date(Date.now() + opponentTotalSeconds * 1000 + 10000)
+          );
+        }
         setCardsActive([]);
       }, 1200);
-    });
-
-    socket.on('no match', (cardIds) => {
-      if (playerTurnRef.current) {
-        playerComboCounter.current = 0;
-        const newPlayerTimer =
-          playerTotalSecondsRef.current < 5
-            ? new Date(Date.now())
-            : new Date(Date.now() + (playerTotalSecondsRef.current - 5) * 1000);
-        playerTotalSecondsRef.current -= 5;
-        playerTimerRestart(newPlayerTimer);
-      } else {
-        opponentComboCounter.current = 0;
-        const newOpponentTimer =
-          opponentTotalSecondsRef.current < 5
-            ? new Date(Date.now())
-            : new Date(
-                Date.now() + (opponentTotalSecondsRef.current - 5) * 1000
-              );
-        opponentTotalSecondsRef.current -= 5;
-        opponentTimerRestart(newOpponentTimer);
-      }
-
+    };
+    const noMatch = (cardIds: number[]) => {
       // timeout for remembering cards by player
+      playerTimerPause();
+      opponentTimerPause();
+
       setTimeout(() => {
         setGame((prev: any) => {
           const newData = { ...prev };
@@ -238,42 +199,58 @@ const Multiplayer = ({ gameConfig }: { gameConfig: GameConfig | null }) => {
           newData.cards[cardIds[1]].opened = false;
           return newData;
         });
-        playerTurnRef.current = !playerTurnRef.current;
-        if (playerTurnRef.current) {
-          playerTimerRestart(
-            new Date(Date.now() + playerTotalSecondsRef.current * 1000)
-          );
-          opponentTimerPause();
-        } else {
-          opponentTimerRestart(
-            new Date(Date.now() + opponentTotalSecondsRef.current * 1000)
-          );
-          playerTimerPause();
-        }
-        setPlayerTurn((prev) => !prev);
       }, 1000);
 
       // larger timeout for css transition to end
       setTimeout(() => {
-        setCardsActive([]);
-      }, 1200);
-    });
+        const decreaseTimerOrSetToNow = (
+          totalSeconds: number,
+          secondsToDecrease: number
+        ) => {
+          return totalSeconds > secondsToDecrease
+            ? new Date(
+                Date.now() + totalSeconds * 1000 - secondsToDecrease * 1000
+              )
+            : new Date(Date.now());
+        };
 
-    socket.on('Timer End', () => {
-      if (playerTotalSecondsRef.current === 0) {
+        if (playerTurn) {
+          setPlayerStats((prev) => ({ ...prev, comboCounter: 0 }));
+          const autoStart = playerTotalSeconds <= 5;
+          playerTimerRestart(
+            decreaseTimerOrSetToNow(playerTotalSeconds, 5),
+            autoStart
+          );
+          if (!autoStart) opponentTimerResume();
+        } else {
+          setOpponentStats((prev) => ({ ...prev, comboCounter: 0 }));
+          const autoStart = opponentTotalSeconds <= 5;
+          opponentTimerRestart(
+            decreaseTimerOrSetToNow(opponentTotalSeconds, 5),
+            autoStart
+          );
+          if (!autoStart) playerTimerResume();
+        }
+        setCardsActive([]);
+        setPlayerTurn((prev) => !prev);
+      }, 1200);
+    };
+    const timerEnd = () => {
+      if (playerTotalSeconds === 0) {
         setPlayerWon(false);
       } else {
         setPlayerWon(true);
       }
-    });
-
-    socket.on('GameEnd', () => {
+    };
+    const gameEnd = () => {
       setTimeout(() => {
-        if (playerScoreRef.current > opponentScoreRef.current) {
+        playerTimerPause();
+        opponentTimerPause();
+        if (playerStats.score > opponentStats.score) {
           setPlayerWon(true);
           localStorage.setItem('config', JSON.stringify({ multiplayer: true }));
-        } else if (playerScoreRef.current === opponentScoreRef.current) {
-          if (playerTurnRef.current) {
+        } else if (playerStats.score === opponentStats.score) {
+          if (playerTurn) {
             setPlayerWon(true);
           } else {
             setPlayerWon(false);
@@ -283,12 +260,39 @@ const Multiplayer = ({ gameConfig }: { gameConfig: GameConfig | null }) => {
           localStorage.setItem('config', JSON.stringify({ multiplayer: true }));
         }
       }, 1200);
-    });
+    };
+
+    socket.on('startGame', startGame);
+    socket.on('Your turn', yourTurn);
+    socket.on('Opponent turn', opponentTurn);
+    socket.on('cardClicked', cardClicked);
+
+    // Sets the game to be equal in both players based on one of those who connected first
+    socket.on('setCards', setCards);
+
+    socket.on('match', match);
+    socket.on('no match', noMatch);
+    socket.on('Timer End', timerEnd);
+    socket.on('GameEnd', gameEnd);
 
     return () => {
-      socket.disconnect();
+      socket.off('startGame', startGame);
+      socket.off('Your turn', yourTurn);
+      socket.off('Opponent turn', opponentTurn);
+      socket.off('cardClicked', cardClicked);
+      socket.off('setCards', setCards);
+      socket.off('match', match);
+      socket.off('no match', noMatch);
+      socket.off('Timer End', timerEnd);
+      socket.off('GameEnd', gameEnd);
     };
-  }, [socket]);
+  }, [
+    playerTotalSeconds,
+    opponentTotalSeconds,
+    playerTurn,
+    playerStats,
+    opponentStats,
+  ]);
 
   const handleCardClick = (el: any, ind: number) => {
     socket.emit('cardClicked', el, ind);
@@ -296,11 +300,11 @@ const Multiplayer = ({ gameConfig }: { gameConfig: GameConfig | null }) => {
 
   return (
     <Container>
-      {playerWon !== null
+      {playerWon !== null // someone Won
         ? createPortal(
             <BattleResults
               isWinner={playerWon}
-              winnerScore={playerWon ? playerScore : opponentScore}
+              winnerScore={playerWon ? playerStats.score : opponentStats.score}
               opponentName={opponent?.username.split('@')[0]}
             />,
             document.body
@@ -315,19 +319,15 @@ const Multiplayer = ({ gameConfig }: { gameConfig: GameConfig | null }) => {
               : (user as any)?.profileImg
           }
           playerAchievements={[]}
-          score={playerScore}
-          comboScore={playerComboScore}
+          score={playerStats.score}
+          comboScore={playerStats.comboScore}
           align="left"
           playerTurn={!opponent ? true : playerTurn}
           timer={opponent && { minutes: playerMinutes, seconds: playerSeconds }}
         />
         <div>
           {opponent ? (
-            playerTurn ? (
-              <S.MyTurn color="#1f57ff" size="30" />
-            ) : (
-              <S.OpponentTurn color="#ff3131" size="30" />
-            )
+            <TurnSwitch playerTurn={playerTurn} />
           ) : (
             <S.WaitingForPlayer>Matching{dots}</S.WaitingForPlayer>
           )}
@@ -336,8 +336,8 @@ const Multiplayer = ({ gameConfig }: { gameConfig: GameConfig | null }) => {
           playerName={opponent?.username.split('@')[0]}
           playerProfileImg={opponent?.profileImg}
           playerAchievements={[]}
-          score={opponentScore}
-          comboScore={opponentComboScore}
+          score={opponentStats.score}
+          comboScore={opponentStats.comboScore}
           align="right"
           playerTurn={!opponent ? true : !playerTurn}
           timer={
