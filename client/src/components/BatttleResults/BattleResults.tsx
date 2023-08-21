@@ -31,13 +31,21 @@ const BattleResults = ({
         ) : (
           <S.LooseText>Loose</S.LooseText>
         )}
-        {isWinner ? (
-          <Text alignment="center">over</Text>
+        {opponentName ? (
+          isWinner ? (
+            <Text alignment="center">over</Text>
+          ) : (
+            <Text alignment="center">to</Text>
+          )
+        ) : null}
+        {opponentName ? (
+          <>
+            <Text alignment="center">{opponentName}</Text>
+            <Text alignment="center">With score: {winnerScore}</Text>
+          </>
         ) : (
-          <Text alignment="center">to</Text>
+          <Text alignment="center">Score: {winnerScore}</Text>
         )}
-        <Text alignment="center">{opponentName}</Text>
-        <Text alignment="center">With score: {winnerScore}</Text>
         <S.Buttons>
           <ButtonOrLink link="/game/mode" $colors="#0FB01F">
             Play again

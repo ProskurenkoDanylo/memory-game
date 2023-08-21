@@ -10,6 +10,8 @@ const fadeOut = keyframes`
   }
 `;
 
+// TODO explosion animatio
+
 export const Score = styled.span`
   position: relative;
 `;
@@ -108,9 +110,16 @@ export const Achievement = styled.img`
   height: 25px;
 `;
 
-export const Timer = styled.span`
+export const Timer = styled.p`
   font-size: 1.3rem;
   color: #fff;
   font-weight: bold;
   text-align: center;
+`;
+
+export const BombIcon = styled.img<{ animate: boolean }>`
+  width: 25px;
+  height: 25px;
+  vertical-align: middle;
+  z-index: 5;
 `;

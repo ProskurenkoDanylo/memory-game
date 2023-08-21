@@ -1,3 +1,4 @@
+import { useRef } from 'react';
 import { FaFire } from 'react-icons/fa';
 import CountUp from 'react-countup';
 
@@ -6,6 +7,7 @@ import * as S from './PlayerBattleProfile.style';
 import { PlayerBattleProfileProps } from './PlayerBattleProfileProps';
 import Text from '../../ui/Text';
 import userSearchGif from '../../assets/images/user-search.gif';
+import bombIcon from '../../assets/images/bomb.png';
 
 const PlayerBattleProfile = ({
   score,
@@ -16,7 +18,10 @@ const PlayerBattleProfile = ({
   align,
   playerTurn,
   timer,
+  animateExplosionAfterTimerEnds,
 }: PlayerBattleProfileProps) => {
+  const bombIconRef = useRef(null);
+
   return (
     <S.Flex
       align={align}
@@ -42,9 +47,19 @@ const PlayerBattleProfile = ({
             )}
           </S.Score>
           {timer ? (
-            <>
-              💣 {timer.minutes}:{timer.seconds}
-            </>
+            <S.Timer>
+              <S.BombIcon
+                ref={bombIconRef}
+                src={bombIcon}
+                animate={
+                  timer.minutes === 0 && timer.seconds === 0
+                    ? animateExplosionAfterTimerEnds
+                    : false
+                }
+                alt=""
+              />{' '}
+              {timer.minutes}:{timer.seconds}
+            </S.Timer>
           ) : null}
         </Text>
         <S.PlayerBoard>

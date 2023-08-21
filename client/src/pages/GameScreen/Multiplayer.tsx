@@ -236,6 +236,7 @@ const Multiplayer = ({ gameConfig }: { gameConfig: GameConfig | null }) => {
       }, 1200);
     };
     const timerEnd = () => {
+      console.log(playerTotalSeconds);
       if (playerTotalSeconds === 0) {
         setPlayerWon(false);
       } else {
@@ -324,6 +325,7 @@ const Multiplayer = ({ gameConfig }: { gameConfig: GameConfig | null }) => {
           align="left"
           playerTurn={!opponent ? true : playerTurn}
           timer={opponent && { minutes: playerMinutes, seconds: playerSeconds }}
+          animateExplosionAfterTimerEnds
         />
         <div>
           {opponent ? (
@@ -343,6 +345,7 @@ const Multiplayer = ({ gameConfig }: { gameConfig: GameConfig | null }) => {
           timer={
             opponent && { minutes: opponentMinutes, seconds: opponentSeconds }
           }
+          animateExplosionAfterTimerEnds
         />
       </S.Flex>
       <S.GameBoard>
