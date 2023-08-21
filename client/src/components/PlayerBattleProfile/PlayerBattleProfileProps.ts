@@ -13,4 +13,5 @@ export interface PlayerBattleProfileProps {
     seconds: number;
     minutes: number;
   };
+  animateExplosionAfterTimerEnds: boolean;
 }
