@@ -36,12 +36,13 @@ export function initializeSocketIo(server) {
     let savedCard = null;
     let savedIndexes = [];
     let numberOfPaired = 0;
-    console.log('connect');
 
     socket.on('joinMultiplayer', (game, user) => {
       isMultiplayer = true;
-      const opponent = waitingPlayers.filter((el) =>
-        isEqual(el.game.config, game.config)
+      const opponent = waitingPlayers.filter(
+        (el) =>
+          isEqual(el.game.config, game.config) &&
+          el.user.username !== user.username
       );
 
       if (opponent.length) {
@@ -125,7 +126,6 @@ export function initializeSocketIo(server) {
     });
 
     socket.on('disconnect', () => {
-      console.log('disconnect');
       waitingPlayers = waitingPlayers.filter((el) => el.socket !== socket);
       if (rooms.has(socket.id)) {
         const { room } = rooms.get(socket.id);

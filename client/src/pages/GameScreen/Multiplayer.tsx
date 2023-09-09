@@ -236,7 +236,6 @@ const Multiplayer = ({ gameConfig }: { gameConfig: GameConfig | null }) => {
       }, 1200);
     };
     const timerEnd = () => {
-      console.log(playerTotalSeconds);
       if (playerTotalSeconds === 0) {
         setPlayerWon(false);
       } else {
@@ -311,6 +310,9 @@ const Multiplayer = ({ gameConfig }: { gameConfig: GameConfig | null }) => {
             document.body
           )
         : null}
+      <S.Bomb
+        animate={playerTotalSeconds === 0 || opponentTotalSeconds === 0}
+      />
       <S.Flex>
         <PlayerBattleProfile
           playerName={(user as any)?.username.split('@')[0]}
