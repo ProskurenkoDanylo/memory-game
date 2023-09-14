@@ -5,14 +5,14 @@ let waitingPlayers = [];
 const rooms = new Map();
 let isMultiplayer = false;
 
-function createRoomAndStartGame(
+function createRoomAndStartGame({
   gameConfig,
   player1,
   player2,
   initialTurn,
   player1UserData,
-  player2UserData
-) {
+  player2UserData,
+}) {
   const room = `room_${player1.id}_${player2.id}`;
   rooms.set(player1.id, { room, numberOfPaired: 0, opponent: player2.id });
   rooms.set(player2.id, { room, numberOfPaired: 0, opponent: player1.id });
@@ -51,14 +51,14 @@ export function initializeSocketIo(server) {
         );
         socket.emit('setCards', opponent[0].game);
         const initialTurn = Math.floor(Math.random() * 2);
-        createRoomAndStartGame(
-          game.config,
-          socket,
-          opponent[0].socket,
+        createRoomAndStartGame({
+          gameConfig: game.config,
+          player1: socket,
+          player2: opponent[0].socket,
           initialTurn,
-          user,
-          opponent[0].user
-        );
+          player1UserData: user,
+          player2UserData: opponent[0].user,
+        });
       } else {
         waitingPlayers.push({ socket, game, user });
         socket.emit('waitingForOpponent');

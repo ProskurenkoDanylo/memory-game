@@ -149,7 +149,7 @@ export const Bomb = styled.div<{ animate: boolean }>`
   top: -100%;
   transform: translateX(-50%) scale(0);
   width: 50%;
-  height: 50%;
+  height: 60%;
   background-image: url(${bombIcon});
   background-size: contain;
   background-repeat: no-repeat;
