@@ -5,6 +5,7 @@ import socketIOClient from 'socket.io-client';
 import { useTimer } from 'react-timer-hook';
 import { AuthContext } from '../../context/AuthContext';
 import { initializeGame } from '../../api';
+import { generateGame } from '../../utils/gameFunctions';
 
 import Card from '../../components/Card';
 import Container from '../../ui/Container';
@@ -54,8 +55,8 @@ const Multiplayer = ({ gameConfig }: { gameConfig: GameConfig | null }) => {
     },
   };
 
-  const playerTimer = useTimer(timerConfig);
-  const opponentTimer = useTimer(timerConfig);
+  let playerTimer: any = useTimer(timerConfig);
+  let opponentTimer: any = useTimer(timerConfig);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -87,6 +88,10 @@ const Multiplayer = ({ gameConfig }: { gameConfig: GameConfig | null }) => {
               config,
             };
             setGame(newData);
+            if (!newData.config.time) {
+              playerTimer = null;
+              opponentTimer = null;
+            }
             socket.connect();
             socket.emit('joinMultiplayer', newData, user);
           });
@@ -107,24 +112,24 @@ const Multiplayer = ({ gameConfig }: { gameConfig: GameConfig | null }) => {
       setOpponent(opponentUserData);
       if (gameConfig.time) {
         const timer = Date.now() + gameConfig.time * 1000;
-        playerTimer.restart(new Date(timer), true);
-        opponentTimer.restart(new Date(timer), true);
+        playerTimer?.restart(new Date(timer), true);
+        opponentTimer?.restart(new Date(timer), true);
       }
     };
 
     const pauseBothTimers = () => {
-      playerTimer.pause();
-      opponentTimer.pause();
+      playerTimer?.pause();
+      opponentTimer?.pause();
     };
 
     const yourTurn = () => {
-      playerTimer.resume();
-      opponentTimer.pause();
+      playerTimer?.resume();
+      opponentTimer?.pause();
       setPlayerTurn(true);
     };
     const opponentTurn = () => {
-      opponentTimer.resume();
-      playerTimer.pause();
+      opponentTimer?.resume();
+      playerTimer?.pause();
       setPlayerTurn(false);
     };
     const cardClicked = (ind: number) => {
@@ -165,12 +170,12 @@ const Multiplayer = ({ gameConfig }: { gameConfig: GameConfig | null }) => {
 
       setTimeout(() => {
         if (playerTurn) {
-          playerTimer.restart(
-            new Date(Date.now() + playerTimer.totalSeconds * 1000 + 10000)
+          playerTimer?.restart(
+            new Date(Date.now() + playerTimer?.totalSeconds * 1000 + 10000)
           );
         } else {
-          opponentTimer.restart(
-            new Date(Date.now() + opponentTimer.totalSeconds * 1000 + 10000)
+          opponentTimer?.restart(
+            new Date(Date.now() + opponentTimer?.totalSeconds * 1000 + 10000)
           );
         }
         setCardsActive([]);
@@ -204,33 +209,43 @@ const Multiplayer = ({ gameConfig }: { gameConfig: GameConfig | null }) => {
 
         if (playerTurn) {
           setPlayerStats((prev) => ({ ...prev, comboCounter: 0 }));
-          const autoStart = playerTimer.totalSeconds <= 5;
-          playerTimer.restart(
-            decreaseTimerOrSetToNow(playerTimer.totalSeconds, 5),
+          const autoStart = playerTimer?.totalSeconds <= 5;
+          playerTimer?.restart(
+            decreaseTimerOrSetToNow(playerTimer?.totalSeconds, 5),
             autoStart
           );
-          if (!autoStart) opponentTimer.resume();
+          if (!autoStart) opponentTimer?.resume();
         } else {
           setOpponentStats((prev) => ({ ...prev, comboCounter: 0 }));
-          const autoStart = opponentTimer.totalSeconds <= 5;
-          opponentTimer.restart(
-            decreaseTimerOrSetToNow(opponentTimer.totalSeconds, 5),
+          const autoStart = opponentTimer?.totalSeconds <= 5;
+          opponentTimer?.restart(
+            decreaseTimerOrSetToNow(opponentTimer?.totalSeconds, 5),
             autoStart
           );
-          if (!autoStart) playerTimer.resume();
+          if (!autoStart) playerTimer?.resume();
         }
         setCardsActive([]);
         setPlayerTurn((prev) => !prev);
       }, 1200);
     };
     const timerEnd = () => {
-      if (playerTimer.totalSeconds === 0) {
+      if (playerTimer?.totalSeconds === 0) {
         setPlayerWon(false);
       } else {
         setPlayerWon(true);
       }
     };
-    const gameEnd = () => {
+    const gameEnd = async () => {
+      if (game?.config?.endless) {
+        const amount =
+          game.cards.length < 100 ? Math.sqrt(game.cards.length) + 2 : 10;
+        const newCards = await generateGame(game.config.category, amount);
+        if (newCards[0].error) {
+          throw new Error(newCards[0].error);
+        }
+        socket.emit('RestartGame', newCards);
+        return;
+      }
       setTimeout(() => {
         pauseBothTimers();
         if (playerStats.score > opponentStats.score) {
@@ -248,6 +263,19 @@ const Multiplayer = ({ gameConfig }: { gameConfig: GameConfig | null }) => {
         }
       }, 1200);
     };
+    const restartGame = (newCards: any[]) => {
+      const { ...config } = game;
+      const newData = {
+        cards: newCards.map((el: any) => ({
+          image: el,
+          disabled: false,
+          opened: false,
+        })),
+        config,
+      };
+      setGame(newData);
+      setCardsActive([]);
+    };
 
     socket.on('startGame', startGame);
     socket.on('Your turn', yourTurn);
@@ -261,6 +289,7 @@ const Multiplayer = ({ gameConfig }: { gameConfig: GameConfig | null }) => {
     socket.on('no match', noMatch);
     socket.on('Timer End', timerEnd);
     socket.on('GameEnd', gameEnd);
+    socket.on('RestartGame', restartGame);
 
     return () => {
       socket.off('startGame', startGame);
@@ -272,10 +301,11 @@ const Multiplayer = ({ gameConfig }: { gameConfig: GameConfig | null }) => {
       socket.off('no match', noMatch);
       socket.off('Timer End', timerEnd);
       socket.off('GameEnd', gameEnd);
+      socket.off('RestartGame', restartGame);
     };
   }, [
-    playerTimer.totalSeconds,
-    opponentTimer.totalSeconds,
+    playerTimer?.totalSeconds,
+    opponentTimer?.totalSeconds,
     playerTurn,
     playerStats,
     opponentStats,
@@ -299,7 +329,8 @@ const Multiplayer = ({ gameConfig }: { gameConfig: GameConfig | null }) => {
         : null}
       <S.Bomb
         animate={
-          playerTimer.totalSeconds === 0 || opponentTimer.totalSeconds === 0
+          game?.config?.time &&
+          (playerTimer?.totalSeconds === 0 || opponentTimer?.totalSeconds === 0)
         }
       />
       <S.Flex>
@@ -316,12 +347,12 @@ const Multiplayer = ({ gameConfig }: { gameConfig: GameConfig | null }) => {
           align="left"
           playerTurn={!opponent ? true : playerTurn}
           timer={
-            opponent && {
+            opponent &&
+            game?.config?.time && {
               minutes: playerTimer.minutes,
               seconds: playerTimer.seconds,
             }
           }
-          animateExplosionAfterTimerEnds
         />
         <div>
           {opponent ? (
@@ -339,15 +370,15 @@ const Multiplayer = ({ gameConfig }: { gameConfig: GameConfig | null }) => {
           align="right"
           playerTurn={!opponent ? true : !playerTurn}
           timer={
-            opponent && {
+            opponent &&
+            game?.config?.time && {
               minutes: opponentTimer.minutes,
               seconds: opponentTimer.seconds,
             }
           }
-          animateExplosionAfterTimerEnds
         />
       </S.Flex>
-      <S.GameBoard>
+      <S.GameBoard size={game && Math.sqrt(game.cards.length)}>
         {game &&
           game.cards.map((el: any, ind: number) => (
             <Card

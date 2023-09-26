@@ -8,6 +8,7 @@ import {
   deleteCategory,
   searchCategories,
   getTop10Categories,
+  getRandomImages,
 } from '../../models/category.model';
 
 async function httpGetAllCategories(req: Request, res: Response) {
@@ -78,6 +79,19 @@ async function httpDeleteCategory(req: Request, res: Response) {
   });
 }
 
+async function httpGetRandomImagesFromCategory(req: Request, res: Response) {
+  const category = String(req.query?.category);
+  let amount = req.query?.amount;
+  if (isNaN(+amount)) {
+    res.status(400).json({
+      error: 'Amount is not a number',
+    });
+    return;
+  }
+  const generatedImages = await getRandomImages(category, +amount);
+  res.status(200).json(generatedImages);
+}
+
 export {
   httpGetAllCategories,
   httpGetTop10Categories,
@@ -86,4 +100,5 @@ export {
   httpAddNewCategory,
   httpUpdateCategory,
   httpDeleteCategory,
+  httpGetRandomImagesFromCategory,
 };

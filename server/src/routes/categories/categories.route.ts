@@ -8,6 +8,7 @@ import {
   httpDeleteCategory,
   httpSearchCategoryByTitle,
   httpGetTop10Categories,
+  httpGetRandomImagesFromCategory,
 } from './categories.controller';
 
 const categoriesRouter = express.Router();
@@ -19,5 +20,7 @@ categoriesRouter.get('/categories/:title', httpSearchCategoryByTitle);
 categoriesRouter.post('/addNew', httpAddNewCategory);
 categoriesRouter.post('/update', httpUpdateCategory);
 categoriesRouter.delete('/delete', httpDeleteCategory);
+categoriesRouter.get('/delete', httpDeleteCategory);
+categoriesRouter.get('/randomImages', httpGetRandomImagesFromCategory);
 
 export default categoriesRouter;

@@ -36,8 +36,10 @@ export function initializeSocketIo(server) {
     let savedCard = null;
     let savedIndexes = [];
     let numberOfPaired = 0;
+    let config = null;
 
     socket.on('joinMultiplayer', (game, user) => {
+      console.log(game, user);
       isMultiplayer = true;
       const opponent = waitingPlayers.filter(
         (el) =>
@@ -59,6 +61,7 @@ export function initializeSocketIo(server) {
           player1UserData: user,
           player2UserData: opponent[0].user,
         });
+        config = game.config;
       } else {
         waitingPlayers.push({ socket, game, user });
         socket.emit('waitingForOpponent');
@@ -69,6 +72,13 @@ export function initializeSocketIo(server) {
       if (isMultiplayer) {
         const { room } = rooms.get(socket.id);
         io.to(room).emit('Timer End');
+      }
+    });
+
+    socket.on('RestartGame', (newCards) => {
+      if (isMultiplayer) {
+        const { room } = rooms.get(socket.id);
+        io.to(room).emit('RestartGame', newCards);
       }
     });
 
@@ -102,13 +112,22 @@ export function initializeSocketIo(server) {
             io.to(room).emit('match', savedIndexes);
             if (numberOfPaired >= 16) {
               io.to(room).emit('GameEnd');
-              io.to(room).disconnectSockets();
+              if (config?.endless) {
+                numberOfPaired = 0;
+                savedIndexes = [];
+              } else {
+                io.to(room).disconnectSockets();
+              }
             }
           } else {
             numberOfPaired += 2;
             socket.emit('match', savedIndexes);
             if (numberOfPaired >= 16) {
-              socket.emit('GameEnd');
+              if (config?.endless) {
+                savedIndexes = [];
+              } else {
+                socket.emit('GameEnd');
+              }
             }
           }
         } else {

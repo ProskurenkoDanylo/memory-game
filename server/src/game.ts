@@ -1,6 +1,7 @@
 import { getRandomImages } from './models/category.model';
 
 interface Game {
+  category?: String;
   multiplayer?: Boolean;
   time?: number; // only in single mode if the difficulty is chosen
   cards?: any[];
@@ -14,6 +15,7 @@ async function createGame(config) {
   const game: Game = {};
 
   game.multiplayer = multiplayer;
+  game.category = category;
 
   if (!multiplayer) {
     game.time = calculateTimeForDifficulty(difficulty);

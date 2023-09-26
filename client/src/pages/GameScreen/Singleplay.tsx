@@ -202,7 +202,7 @@ const Singleplay = ({ gameConfig }: { gameConfig: GameConfig | null }) => {
         </S.Score>
       </Text>
       <Text alignment="center">Highscore: 44985</Text>
-      <S.GameBoard>
+      <S.GameBoard size={game && Math.sqrt(game.cards.length)}>
         {game &&
           game.cards.map((el: any, ind: number) => (
             <Card
