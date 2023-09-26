@@ -117,7 +117,7 @@ export const Timer = styled.p`
   text-align: left;
 `;
 
-export const BombIcon = styled.img<{ animate: boolean }>`
+export const BombIcon = styled.img`
   width: 25px;
   height: 25px;
   vertical-align: middle;

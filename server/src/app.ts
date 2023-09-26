@@ -10,7 +10,7 @@ import 'dotenv/config';
 
 import usersRouter from './routes/users/users.route';
 import achievementsRouter from './routes/achievements/achievements.route';
-import categoriesRouter from './routes/categories/categoriers.route';
+import categoriesRouter from './routes/categories/categories.route';
 
 import {
   primaryAuth,

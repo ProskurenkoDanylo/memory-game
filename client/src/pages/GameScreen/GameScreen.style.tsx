@@ -2,13 +2,17 @@ import styled, { keyframes, css } from 'styled-components';
 import bombIcon from '../../assets/images/bomb.png';
 import explosion from '../../assets/images/explosion.png';
 
-export const GameBoard = styled.div`
+interface GameBoardProps {
+  size: null | number;
+}
+
+export const GameBoard = styled.div<GameBoardProps>`
   width: 100%;
   margin: 20px auto 50px auto;
   display: grid;
   justify-items: center;
-  grid-template-columns: repeat(4, 1fr);
-  grid-template-rows: repeat(4, 1fr);
+  grid-template-columns: repeat(${({ size }) => size}, 1fr);
+  grid-template-rows: repeat(${({ size }) => size}, 1fr);
   gap: 20px;
 
   @media (min-width: 500px) {

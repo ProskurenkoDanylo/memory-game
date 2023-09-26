@@ -84,6 +84,21 @@ const initializeGame = async (config: GameConfig) => {
   });
 };
 
+const getRandomImagesFromCategory = async (
+  category: string,
+  amount: number
+) => {
+  return await fetch(
+    `${API_URL}/categories/randomImages?category=${category}&amount=${amount}`,
+    {
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      },
+    }
+  );
+};
+
 export {
   logoutUser,
   checkIfAuthenticated,
@@ -94,4 +109,5 @@ export {
   getTop10Categories,
   searchCategory,
   initializeGame,
+  getRandomImagesFromCategory,
 };

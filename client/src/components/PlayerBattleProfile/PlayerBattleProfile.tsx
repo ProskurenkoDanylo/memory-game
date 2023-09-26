@@ -18,7 +18,6 @@ const PlayerBattleProfile = ({
   align,
   playerTurn,
   timer,
-  animateExplosionAfterTimerEnds,
 }: PlayerBattleProfileProps) => {
   const bombIconRef = useRef(null);
 
@@ -48,16 +47,7 @@ const PlayerBattleProfile = ({
           </S.Score>
           {timer ? (
             <S.Timer>
-              <S.BombIcon
-                ref={bombIconRef}
-                src={bombIcon}
-                animate={
-                  timer.minutes === 0 && timer.seconds === 0
-                    ? animateExplosionAfterTimerEnds
-                    : false
-                }
-                alt=""
-              />{' '}
+              <S.BombIcon ref={bombIconRef} src={bombIcon} alt="" />{' '}
               {timer.minutes}:{timer.seconds}
             </S.Timer>
           ) : null}
