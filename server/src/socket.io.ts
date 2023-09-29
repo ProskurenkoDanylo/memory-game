@@ -14,8 +14,18 @@ function createRoomAndStartGame({
   player2UserData,
 }) {
   const room = `room_${player1.id}_${player2.id}`;
-  rooms.set(player1.id, { room, numberOfPaired: 0, opponent: player2.id });
-  rooms.set(player2.id, { room, numberOfPaired: 0, opponent: player1.id });
+  rooms.set(player1.id, {
+    room,
+    numberOfPaired: 0,
+    opponent: player2.id,
+    gameConfig,
+  });
+  rooms.set(player2.id, {
+    room,
+    numberOfPaired: 0,
+    opponent: player1.id,
+    gameConfig,
+  });
   player1.join(room);
   player2.join(room);
   player1.emit('startGame', gameConfig, player2UserData);
@@ -36,10 +46,26 @@ export function initializeSocketIo(server) {
     let savedCard = null;
     let savedIndexes = [];
     let numberOfPaired = 0;
-    let config = null;
+    let pairs = 16;
+
+    function resetGame(room, socket, opponent, gameConfig) {
+      rooms.set(socket.id, {
+        room,
+        numberOfPaired: 0,
+        opponent,
+        gameConfig,
+      });
+      rooms.set(opponent, {
+        room,
+        numberOfPaired: 0,
+        opponent: socket.id,
+        gameConfig,
+      });
+      numberOfPaired = 0;
+      savedIndexes = [];
+    }
 
     socket.on('joinMultiplayer', (game, user) => {
-      console.log(game, user);
       isMultiplayer = true;
       const opponent = waitingPlayers.filter(
         (el) =>
@@ -61,7 +87,6 @@ export function initializeSocketIo(server) {
           player1UserData: user,
           player2UserData: opponent[0].user,
         });
-        config = game.config;
       } else {
         waitingPlayers.push({ socket, game, user });
         socket.emit('waitingForOpponent');
@@ -77,8 +102,10 @@ export function initializeSocketIo(server) {
 
     socket.on('RestartGame', (newCards) => {
       if (isMultiplayer) {
-        const { room } = rooms.get(socket.id);
-        io.to(room).emit('RestartGame', newCards);
+        const player = rooms.get(socket.id);
+        const opponent = rooms.get(player.opponent);
+        io.to(player.room).emit('RestartGame', newCards);
+        resetGame(player.room, socket, opponent, player.gameConfig);
       }
     });
 
@@ -94,7 +121,9 @@ export function initializeSocketIo(server) {
       } else {
         if (savedCard === card) {
           if (isMultiplayer) {
-            let { room, numberOfPaired, opponent } = rooms.get(socket.id);
+            let { room, numberOfPaired, opponent, gameConfig } = rooms.get(
+              socket.id
+            );
 
             numberOfPaired += 2;
 
@@ -102,32 +131,32 @@ export function initializeSocketIo(server) {
               room,
               numberOfPaired,
               opponent,
+              gameConfig,
             });
             rooms.set(opponent, {
               room,
               numberOfPaired,
               opponent: socket.id,
+              gameConfig,
             });
 
             io.to(room).emit('match', savedIndexes);
-            if (numberOfPaired >= 16) {
+
+            if (numberOfPaired >= pairs) {
               io.to(room).emit('GameEnd');
-              if (config?.endless) {
-                numberOfPaired = 0;
-                savedIndexes = [];
-              } else {
+              if (!gameConfig?.endless) {
                 io.to(room).disconnectSockets();
+              } else {
+                if (pairs < 100) {
+                  pairs = (Math.sqrt(pairs) + 2) ** 2;
+                }
               }
             }
           } else {
             numberOfPaired += 2;
             socket.emit('match', savedIndexes);
-            if (numberOfPaired >= 16) {
-              if (config?.endless) {
-                savedIndexes = [];
-              } else {
-                socket.emit('GameEnd');
-              }
+            if (numberOfPaired >= pairs) {
+              socket.emit('GameEnd');
             }
           }
         } else {
