@@ -235,15 +235,17 @@ const Multiplayer = ({ gameConfig }: { gameConfig: GameConfig | null }) => {
         setPlayerWon(true);
       }
     };
-    const gameEnd = async () => {
+    const gameEnd = () => {
       if (game?.config?.endless) {
-        const amount =
-          game.cards.length < 100 ? Math.sqrt(game.cards.length) + 2 : 10;
-        const newCards = await generateGame(game.config.category, amount);
-        if (newCards[0].error) {
-          throw new Error(newCards[0].error);
-        }
-        socket.emit('RestartGame', newCards);
+        setTimeout(async () => {
+          const amount =
+            game.cards.length < 100 ? Math.sqrt(game.cards.length) + 2 : 10;
+          const newCards = await generateGame(game.config.category, amount);
+          if (newCards[0].error) {
+            throw new Error(newCards[0].error);
+          }
+          socket.emit('RestartGame', newCards);
+        }, 1200);
         return;
       }
       setTimeout(() => {
@@ -264,7 +266,7 @@ const Multiplayer = ({ gameConfig }: { gameConfig: GameConfig | null }) => {
       }, 1200);
     };
     const restartGame = (newCards: any[]) => {
-      const { ...config } = game;
+      const { config } = game;
       const newData = {
         cards: newCards.map((el: any) => ({
           image: el,
@@ -388,7 +390,7 @@ const Multiplayer = ({ gameConfig }: { gameConfig: GameConfig | null }) => {
                 borderWidth: 2,
                 borderStyle: 'solid',
               }}
-              frontIconURL={defaultCover}
+              frontIconURL={el.image}
               /* Preventing cheaters from web dev tools*/
               back={cardsActive.includes(ind) ? el.image : defaultCover}
               opened={el.opened}

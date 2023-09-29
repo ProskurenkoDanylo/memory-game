@@ -7,7 +7,7 @@
   endGame()
 
   ** Latest Update **
-  Almost DONE. Known issue - card is matched from previous game after a new game field created. Supposed reason: Socket.io send second match event for a second player after a new game started by a first player.
+  Fixed problems with progressive diffuclty, although more cards should be added, now everything works as it must.
 
 - Obstacles:
   timerBeforeMove = generateRandomTimer();
