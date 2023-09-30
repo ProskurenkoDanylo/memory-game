@@ -34,6 +34,8 @@ const Multiplayer = ({ gameConfig }: { gameConfig: GameConfig | null }) => {
   const [cardsActive, setCardsActive] = useState<number[]>([]);
   const [playerTurn, setPlayerTurn] = useState(false);
   const [playerWon, setPlayerWon] = useState<boolean | null>(null);
+  const [reveilSuggested, setReveilSuggested] = useState<boolean>(false);
+  const [reveilMode, setReveilMode] = useState<boolean>(false);
   const [playerStats, setPlayerStats] = useState<PlayerStats>({
     score: 0,
     comboCounter: 0,
@@ -268,8 +270,8 @@ const Multiplayer = ({ gameConfig }: { gameConfig: GameConfig | null }) => {
     const restartGame = (newCards: any[]) => {
       const { config } = game;
       const newData = {
-        cards: newCards.map((el: any) => ({
-          image: el,
+        cards: newCards.map((card: any) => ({
+          image: card,
           disabled: false,
           opened: false,
         })),
@@ -277,6 +279,35 @@ const Multiplayer = ({ gameConfig }: { gameConfig: GameConfig | null }) => {
       };
       setGame(newData);
       setCardsActive([]);
+    };
+    const reveilCardsSuggestion = () => {
+      setReveilSuggested(true);
+    };
+    const reveilCards = () => {
+      setReveilMode(true);
+      setGame((prev: any) => {
+        const newData = { ...prev };
+        newData.cards.map((card: any) => (card.opened = true));
+        return newData;
+      });
+      setTimeout(() => {
+        setGame((prev: any) => {
+          const newData = { ...prev };
+          newData.cards.map((card: any, index: number) => {
+            console.log(cardsActive, index);
+            if (!cardsActive.includes(index)) {
+              card.opened = false;
+            } else {
+              card.opened = true;
+            }
+          });
+          return newData;
+        });
+        setReveilMode(false);
+      }, 3000);
+    };
+    const disagreeReveilCards = () => {
+      alert('Player decided not to reveil cards yet.');
     };
 
     socket.on('startGame', startGame);
@@ -292,6 +323,9 @@ const Multiplayer = ({ gameConfig }: { gameConfig: GameConfig | null }) => {
     socket.on('Timer End', timerEnd);
     socket.on('GameEnd', gameEnd);
     socket.on('RestartGame', restartGame);
+    socket.on('reveilCardsSuggestion', reveilCardsSuggestion);
+    socket.on('reveilCards', reveilCards);
+    socket.on('disagreeReveilCards', disagreeReveilCards);
 
     return () => {
       socket.off('startGame', startGame);
@@ -311,10 +345,23 @@ const Multiplayer = ({ gameConfig }: { gameConfig: GameConfig | null }) => {
     playerTurn,
     playerStats,
     opponentStats,
+    cardsActive,
   ]);
 
-  const handleCardClick = (el: any, ind: number) => {
-    socket.emit('cardClicked', el, ind);
+  const handleCardClick = (card: any, ind: number) => {
+    socket.emit('cardClicked', card, ind);
+  };
+
+  const handleCardsReveilClick = () => {
+    socket.emit('reveilCardsSuggestion');
+  };
+
+  const handleCardsReveilDecision = (consent: boolean) => {
+    if (consent) {
+      socket.emit('reveilCards');
+    } else {
+      socket.emit('disagreeReveilCards');
+    }
   };
 
   return (
@@ -356,9 +403,24 @@ const Multiplayer = ({ gameConfig }: { gameConfig: GameConfig | null }) => {
             }
           }
         />
+        {reveilSuggested ? (
+          <div>
+            <button onClick={() => handleCardsReveilDecision(true)}>
+              Agree
+            </button>
+            <button onClick={() => handleCardsReveilDecision(false)}>
+              Disagree
+            </button>
+          </div>
+        ) : null}
         <div>
           {opponent ? (
-            <TurnSwitch playerTurn={playerTurn} />
+            <>
+              <S.ReveilCardsButton onClick={handleCardsReveilClick}>
+                reveil
+              </S.ReveilCardsButton>
+              <TurnSwitch playerTurn={playerTurn} />
+            </>
           ) : (
             <S.WaitingForPlayer>Matching{dots}</S.WaitingForPlayer>
           )}
@@ -382,25 +444,30 @@ const Multiplayer = ({ gameConfig }: { gameConfig: GameConfig | null }) => {
       </S.Flex>
       <S.GameBoard size={game && Math.sqrt(game.cards.length)}>
         {game &&
-          game.cards.map((el: any, ind: number) => (
+          game.cards.map((card: any, ind: number) => (
             <Card
-              key={ind + el.image}
+              key={ind + card.image}
               border={{
                 borderColor: '#fff',
                 borderWidth: 2,
                 borderStyle: 'solid',
               }}
-              frontIconURL={el.image}
+              frontIconURL={defaultCover}
               /* Preventing cheaters from web dev tools*/
-              back={cardsActive.includes(ind) ? el.image : defaultCover}
-              opened={el.opened}
-              disabled={opponent ? el.disabled : true}
+              back={
+                cardsActive.includes(ind) || reveilMode
+                  ? card.image
+                  : defaultCover
+              }
+              opened={card.opened}
+              disabled={opponent ? card.disabled : true}
               onClick={
+                reveilMode ||
                 cardsActive.includes(ind) ||
                 cardsActive.length >= 2 ||
                 !playerTurn
                   ? null
-                  : () => handleCardClick(el.image, ind)
+                  : () => handleCardClick(card.image, ind)
               }
             />
           ))}

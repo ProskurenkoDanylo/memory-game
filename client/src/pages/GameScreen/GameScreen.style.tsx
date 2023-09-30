@@ -165,3 +165,7 @@ export const Bomb = styled.div<{ animate: boolean }>`
       animation-fill-mode: forwards;
     `}
 `;
+
+export const ReveilCardsButton = styled.button`
+  /* TODO styles for button*/
+`;
