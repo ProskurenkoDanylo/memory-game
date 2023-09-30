@@ -1,17 +1,14 @@
 # Endless mode ideas:
 
-- Progressive Difficulty:
-  gameEnd event:
-  endless ?
-  continueAndAddRowAndColumn() :
-  endGame()
+- ~~Progressive Difficulty:~~
+  ~~gameEnd event:~~
+  ~~endless ?~~
+  ~~continueAndAddRowAndColumn() :~~
+  ~~endGame()~~
 
-  ** Latest Update **
-  Fixed problems with progressive diffuclty, although more cards should be added, now everything works as it must.
+  ~~**Latest Update**~~
+  ~~Fixed problems with progressive diffuclty, although more cards should be added, now everything works as it must.~~
 
-- Obstacles:
-  timerBeforeMove = generateRandomTimer();
-  onTimerEnd = () => RandomizeCardsPositions();
 - Shared Power-Ups:
   reveilCardsClick() -> socket.io -> agreeToReveil() or disagree();
 

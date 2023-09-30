@@ -173,6 +173,23 @@ export function initializeSocketIo(server) {
       }
     });
 
+    socket.on('reveilCardsSuggestion', () => {
+      const { opponent } = rooms.get(socket.id);
+      io.to(opponent).emit('reveilCardsSuggestion');
+    });
+
+    socket.on('reveilCards', () => {
+      const { room } = rooms.get(socket.id);
+
+      io.to(room).emit('reveilCards');
+    });
+
+    socket.on('disagreeReveilCards', () => {
+      const { opponent } = rooms.get(socket.id);
+
+      io.to(opponent).emit('disagreeReveilCards');
+    });
+
     socket.on('disconnect', () => {
       waitingPlayers = waitingPlayers.filter((el) => el.socket !== socket);
       if (rooms.has(socket.id)) {
