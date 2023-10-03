@@ -10,8 +10,6 @@ const fadeOut = keyframes`
   }
 `;
 
-// TODO explosion animatio
-
 export const Score = styled.span`
   position: relative;
 `;
@@ -33,6 +31,13 @@ export const ProfileImg = styled.img`
   height: 50px;
   border-radius: 50%;
   align-self: flex-end;
+`;
+
+export const Powers = styled.div`
+  height: 1em;
+  & > * {
+    margin-right: 5px;
+  }
 `;
 
 export const PlayerBoard = styled.div`
@@ -87,6 +92,7 @@ export const Flex = styled.div<FlexProps>`
   }
 
   ${PlayerBoard} {
+    margin: 5px 0;
     p {
       margin: 5px 0;
     }
@@ -122,4 +128,18 @@ export const BombIcon = styled.img`
   height: 25px;
   vertical-align: middle;
   z-index: 5;
+`;
+
+export const ReveilCardsButton = styled.button<{ used: boolean }>`
+  ${({ used }) =>
+    used &&
+    css`
+      opacity: 0.6;
+    `}
+  cursor: pointer;
+  display: block;
+  border-radius: 25%;
+  border: 1px solid #fff;
+  background-color: #0e162b;
+  padding: 0.5em;
 `;

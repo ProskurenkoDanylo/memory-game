@@ -7,6 +7,7 @@ import { AuthContext } from '../../context/AuthContext';
 import { initializeGame } from '../../api';
 import { generateGame } from '../../utils/gameFunctions';
 
+import Modal from '../../ui/Modal/Modal';
 import Card from '../../components/Card';
 import Container from '../../ui/Container';
 import TurnSwitch from '../../components/TurnSwitch';
@@ -36,6 +37,9 @@ const Multiplayer = ({ gameConfig }: { gameConfig: GameConfig | null }) => {
   const [playerWon, setPlayerWon] = useState<boolean | null>(null);
   const [reveilSuggested, setReveilSuggested] = useState<boolean>(false);
   const [reveilMode, setReveilMode] = useState<boolean>(false);
+  const [reveilUsed, setReveilUsed] = useState<boolean>(false);
+  const [waitingForPlayerDecision, setWaitingForPlayerDecision] =
+    useState<boolean>(false);
   const [playerStats, setPlayerStats] = useState<PlayerStats>({
     score: 0,
     comboCounter: 0,
@@ -284,6 +288,7 @@ const Multiplayer = ({ gameConfig }: { gameConfig: GameConfig | null }) => {
       setReveilSuggested(true);
     };
     const reveilCards = () => {
+      setReveilUsed(true);
       setReveilMode(true);
       setGame((prev: any) => {
         const newData = { ...prev };
@@ -307,7 +312,7 @@ const Multiplayer = ({ gameConfig }: { gameConfig: GameConfig | null }) => {
       }, 3000);
     };
     const disagreeReveilCards = () => {
-      alert('Player decided not to reveil cards yet.');
+      setWaitingForPlayerDecision(false);
     };
 
     socket.on('startGame', startGame);
@@ -353,6 +358,7 @@ const Multiplayer = ({ gameConfig }: { gameConfig: GameConfig | null }) => {
   };
 
   const handleCardsReveilClick = () => {
+    setWaitingForPlayerDecision(true);
     socket.emit('reveilCardsSuggestion');
   };
 
@@ -368,11 +374,15 @@ const Multiplayer = ({ gameConfig }: { gameConfig: GameConfig | null }) => {
     <Container>
       {playerWon !== null // someone Won
         ? createPortal(
-            <BattleResults
-              isWinner={playerWon}
-              winnerScore={playerWon ? playerStats.score : opponentStats.score}
-              opponentName={opponent?.username.split('@')[0]}
-            />,
+            <Modal canClose={false}>
+              <BattleResults
+                isWinner={playerWon}
+                winnerScore={
+                  playerWon ? playerStats.score : opponentStats.score
+                }
+                opponentName={opponent?.username.split('@')[0]}
+              />
+            </Modal>,
             document.body
           )
         : null}
@@ -402,23 +412,52 @@ const Multiplayer = ({ gameConfig }: { gameConfig: GameConfig | null }) => {
               seconds: playerTimer.seconds,
             }
           }
+          powers={
+            game?.config?.endless &&
+            opponent && {
+              reveil: {
+                handler:
+                  playerTurn &&
+                  (reveilUsed ? () => {} : handleCardsReveilClick),
+                used: reveilUsed,
+              },
+            }
+          }
         />
-        {reveilSuggested ? (
-          <div>
-            <button onClick={() => handleCardsReveilDecision(true)}>
-              Agree
-            </button>
-            <button onClick={() => handleCardsReveilDecision(false)}>
-              Disagree
-            </button>
-          </div>
+        {waitingForPlayerDecision && !reveilUsed ? (
+          <Modal
+            closeCallback={() => {
+              handleCardsReveilDecision(false);
+            }}>
+            <S.Suggestion>Waiting for opponent's response...</S.Suggestion>
+          </Modal>
+        ) : null}
+        {reveilSuggested && !reveilUsed ? (
+          <Modal
+            closeCallback={() => {
+              handleCardsReveilDecision(false);
+            }}>
+            <S.Suggestion>
+              Opponent suggests to use the Reveil power up.
+            </S.Suggestion>
+            <S.Agree>
+              <S.AgreeButton onClick={() => handleCardsReveilDecision(true)}>
+                Agree
+              </S.AgreeButton>
+              <S.Shadow />
+            </S.Agree>
+            <S.Disagree>
+              <S.DisagreeButton
+                onClick={() => handleCardsReveilDecision(false)}>
+                Disagree
+              </S.DisagreeButton>
+              <S.Shadow />
+            </S.Disagree>
+          </Modal>
         ) : null}
         <div>
           {opponent ? (
             <>
-              <S.ReveilCardsButton onClick={handleCardsReveilClick}>
-                reveil
-              </S.ReveilCardsButton>
               <TurnSwitch playerTurn={playerTurn} />
             </>
           ) : (
