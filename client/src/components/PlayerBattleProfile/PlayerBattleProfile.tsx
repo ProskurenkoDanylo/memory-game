@@ -8,6 +8,7 @@ import { PlayerBattleProfileProps } from './PlayerBattleProfileProps';
 import Text from '../../ui/Text';
 import userSearchGif from '../../assets/images/user-search.gif';
 import bombIcon from '../../assets/images/bomb.png';
+import eye from '../../assets/images/eye.svg';
 
 const PlayerBattleProfile = ({
   score,
@@ -18,6 +19,7 @@ const PlayerBattleProfile = ({
   align,
   playerTurn,
   timer,
+  powers,
 }: PlayerBattleProfileProps) => {
   const bombIconRef = useRef(null);
 
@@ -74,6 +76,17 @@ const PlayerBattleProfile = ({
             </Text>
           )}
         </S.PlayerBoard>
+
+        <S.Powers>
+          {powers?.reveil && (
+            <S.ReveilCardsButton
+              used={powers.reveil.used}
+              title="Reveil the cards"
+              onClick={powers.reveil.handler}>
+              <img src={eye} alt="" />
+            </S.ReveilCardsButton>
+          )}
+        </S.Powers>
       </div>
     </S.Flex>
   );

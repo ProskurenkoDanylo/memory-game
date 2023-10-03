@@ -13,4 +13,10 @@ export interface PlayerBattleProfileProps {
     seconds: number;
     minutes: number;
   };
+  powers?: {
+    reveil?: {
+      handler: () => void;
+      used: boolean;
+    };
+  };
 }

@@ -24,36 +24,30 @@ const BattleResults = ({
   }, []);
 
   return (
-    <S.Modal>
-      <S.Centered>
-        {isWinner ? (
-          <S.WinText>WIN</S.WinText>
+    <S.Centered>
+      {isWinner ? <S.WinText>WIN</S.WinText> : <S.LooseText>Loose</S.LooseText>}
+      {opponentName ? (
+        isWinner ? (
+          <Text alignment="center">over</Text>
         ) : (
-          <S.LooseText>Loose</S.LooseText>
-        )}
-        {opponentName ? (
-          isWinner ? (
-            <Text alignment="center">over</Text>
-          ) : (
-            <Text alignment="center">to</Text>
-          )
-        ) : null}
-        {opponentName ? (
-          <>
-            <Text alignment="center">{opponentName}</Text>
-            <Text alignment="center">With score: {winnerScore}</Text>
-          </>
-        ) : (
-          <Text alignment="center">Score: {winnerScore}</Text>
-        )}
-        <S.Buttons>
-          <ButtonOrLink link="/game/mode" $colors="#0FB01F">
-            Play again
-          </ButtonOrLink>{' '}
-          <ButtonOrLink link="/">Home</ButtonOrLink>
-        </S.Buttons>
-      </S.Centered>
-    </S.Modal>
+          <Text alignment="center">to</Text>
+        )
+      ) : null}
+      {opponentName ? (
+        <>
+          <Text alignment="center">{opponentName}</Text>
+          <Text alignment="center">With score: {winnerScore}</Text>
+        </>
+      ) : (
+        <Text alignment="center">Score: {winnerScore}</Text>
+      )}
+      <S.Buttons>
+        <ButtonOrLink link="/game/mode" $colors="#0FB01F">
+          Play again
+        </ButtonOrLink>{' '}
+        <ButtonOrLink link="/">Home</ButtonOrLink>
+      </S.Buttons>
+    </S.Centered>
   );
 };
 
