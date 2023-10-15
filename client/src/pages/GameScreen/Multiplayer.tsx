@@ -35,9 +35,11 @@ const Multiplayer = ({ gameConfig }: { gameConfig: GameConfig | null }) => {
   const [cardsActive, setCardsActive] = useState<number[]>([]);
   const [playerTurn, setPlayerTurn] = useState(false);
   const [playerWon, setPlayerWon] = useState<boolean | null>(null);
-  const [reveilSuggested, setReveilSuggested] = useState<boolean>(false);
-  const [reveilMode, setReveilMode] = useState<boolean>(false);
-  const [reveilUsed, setReveilUsed] = useState<boolean>(false);
+  const [reveil, setReveil] = useState({
+    suggested: false,
+    used: false,
+    on: false,
+  });
   const [waitingForPlayerDecision, setWaitingForPlayerDecision] =
     useState<boolean>(false);
   const [playerStats, setPlayerStats] = useState<PlayerStats>({
@@ -55,7 +57,7 @@ const Multiplayer = ({ gameConfig }: { gameConfig: GameConfig | null }) => {
     autoStart: false,
     expiryTimestamp: new Date(Date.now() + 30000),
     onExpire: () => {
-      if (playerWon === null) {
+      if (playerWon === null && game?.config?.time) {
         opponent ? socket.emit('Timer End') : null;
       }
     },
@@ -94,10 +96,6 @@ const Multiplayer = ({ gameConfig }: { gameConfig: GameConfig | null }) => {
               config,
             };
             setGame(newData);
-            if (!newData.config.time) {
-              playerTimer = null;
-              opponentTimer = null;
-            }
             socket.connect();
             socket.emit('joinMultiplayer', newData, user);
           });
@@ -252,24 +250,30 @@ const Multiplayer = ({ gameConfig }: { gameConfig: GameConfig | null }) => {
           }
           socket.emit('RestartGame', newCards);
         }, 1200);
-        return;
-      }
-      setTimeout(() => {
-        pauseBothTimers();
-        if (playerStats.score > opponentStats.score) {
-          setPlayerWon(true);
-          localStorage.setItem('config', JSON.stringify({ multiplayer: true }));
-        } else if (playerStats.score === opponentStats.score) {
-          if (playerTurn) {
+      } else {
+        setTimeout(() => {
+          pauseBothTimers();
+          if (playerStats.score > opponentStats.score) {
             setPlayerWon(true);
+            localStorage.setItem(
+              'config',
+              JSON.stringify({ multiplayer: true })
+            );
+          } else if (playerStats.score === opponentStats.score) {
+            if (playerTurn) {
+              setPlayerWon(true);
+            } else {
+              setPlayerWon(false);
+            }
           } else {
             setPlayerWon(false);
+            localStorage.setItem(
+              'config',
+              JSON.stringify({ multiplayer: true })
+            );
           }
-        } else {
-          setPlayerWon(false);
-          localStorage.setItem('config', JSON.stringify({ multiplayer: true }));
-        }
-      }, 1200);
+        }, 1200);
+      }
     };
     const restartGame = (newCards: any[]) => {
       const { config } = game;
@@ -285,11 +289,10 @@ const Multiplayer = ({ gameConfig }: { gameConfig: GameConfig | null }) => {
       setCardsActive([]);
     };
     const reveilCardsSuggestion = () => {
-      setReveilSuggested(true);
+      setReveil((prev) => ({ ...prev, suggested: true }));
     };
     const reveilCards = () => {
-      setReveilUsed(true);
-      setReveilMode(true);
+      setReveil({ suggested: false, used: true, on: true });
       setGame((prev: any) => {
         const newData = { ...prev };
         newData.cards.map((card: any) => (card.opened = true));
@@ -299,7 +302,6 @@ const Multiplayer = ({ gameConfig }: { gameConfig: GameConfig | null }) => {
         setGame((prev: any) => {
           const newData = { ...prev };
           newData.cards.map((card: any, index: number) => {
-            console.log(cardsActive, index);
             if (!cardsActive.includes(index)) {
               card.opened = false;
             } else {
@@ -308,7 +310,7 @@ const Multiplayer = ({ gameConfig }: { gameConfig: GameConfig | null }) => {
           });
           return newData;
         });
-        setReveilMode(false);
+        setReveil((prev) => ({ ...prev, on: false }));
       }, 3000);
     };
     const disagreeReveilCards = () => {
@@ -366,6 +368,7 @@ const Multiplayer = ({ gameConfig }: { gameConfig: GameConfig | null }) => {
     if (consent) {
       socket.emit('reveilCards');
     } else {
+      setReveil((prev) => ({ ...prev, suggested: false }));
       socket.emit('disagreeReveilCards');
     }
   };
@@ -418,13 +421,13 @@ const Multiplayer = ({ gameConfig }: { gameConfig: GameConfig | null }) => {
               reveil: {
                 handler:
                   playerTurn &&
-                  (reveilUsed ? () => {} : handleCardsReveilClick),
-                used: reveilUsed,
+                  (reveil.used ? () => {} : handleCardsReveilClick),
+                used: reveil.used,
               },
             }
           }
         />
-        {waitingForPlayerDecision && !reveilUsed ? (
+        {waitingForPlayerDecision && !reveil.used ? (
           <Modal
             closeCallback={() => {
               handleCardsReveilDecision(false);
@@ -432,7 +435,7 @@ const Multiplayer = ({ gameConfig }: { gameConfig: GameConfig | null }) => {
             <S.Suggestion>Waiting for opponent's response...</S.Suggestion>
           </Modal>
         ) : null}
-        {reveilSuggested && !reveilUsed ? (
+        {reveil.suggested ? (
           <Modal
             closeCallback={() => {
               handleCardsReveilDecision(false);
@@ -494,14 +497,14 @@ const Multiplayer = ({ gameConfig }: { gameConfig: GameConfig | null }) => {
               frontIconURL={defaultCover}
               /* Preventing cheaters from web dev tools*/
               back={
-                cardsActive.includes(ind) || reveilMode
+                cardsActive.includes(ind) || reveil.on
                   ? card.image
                   : defaultCover
               }
               opened={card.opened}
               disabled={opponent ? card.disabled : true}
               onClick={
-                reveilMode ||
+                reveil.on ||
                 cardsActive.includes(ind) ||
                 cardsActive.length >= 2 ||
                 !playerTurn
