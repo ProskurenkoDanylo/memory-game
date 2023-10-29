@@ -1,3 +1,10 @@
+type PowerConfig = {
+  handler: () => void;
+  used: boolean;
+  title: string;
+  icon: any;
+};
+
 export interface PlayerBattleProfileProps {
   score: number;
   comboScore: number;
@@ -10,13 +17,11 @@ export interface PlayerBattleProfileProps {
   align: 'left' | 'right';
   playerTurn: boolean;
   timer?: {
-    seconds: number;
-    minutes: number;
+    time: {
+      seconds: number;
+      minutes: number;
+    } | null;
+    frozen: boolean | undefined;
   };
-  powers?: {
-    reveil?: {
-      handler: () => void;
-      used: boolean;
-    };
-  };
+  powers?: { [key: string]: PowerConfig } | null;
 }

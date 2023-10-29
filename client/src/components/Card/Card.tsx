@@ -8,9 +8,11 @@ function Card({
   opened,
   disabled,
   onClick,
+  className,
 }: CardProps) {
   return (
     <S.CardWrapper
+      className={className}
       opened={opened}
       onClick={onClick || undefined}
       disabled={disabled}

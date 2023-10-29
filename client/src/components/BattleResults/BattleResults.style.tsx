@@ -31,6 +31,11 @@ export const LooseText = styled.p`
   color: #ff2f00;
 `;
 
+export const DrawText = styled.p`
+  ${sharedText}
+  color: #067b8f;
+`;
+
 export const Centered = styled.div`
   display: grid;
   align-content: center;

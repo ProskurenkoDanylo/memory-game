@@ -10,4 +10,5 @@ export interface Card {
   opened: boolean;
   disabled: boolean;
   onClick: (() => void) | null;
+  className?: string;
 }

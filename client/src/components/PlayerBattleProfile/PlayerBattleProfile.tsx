@@ -8,7 +8,6 @@ import { PlayerBattleProfileProps } from './PlayerBattleProfileProps';
 import Text from '../../ui/Text';
 import userSearchGif from '../../assets/images/user-search.gif';
 import bombIcon from '../../assets/images/bomb.png';
-import eye from '../../assets/images/eye.svg';
 
 const PlayerBattleProfile = ({
   score,
@@ -47,10 +46,10 @@ const PlayerBattleProfile = ({
               </S.ComboScore>
             )}
           </S.Score>
-          {timer ? (
-            <S.Timer>
+          {timer?.time ? (
+            <S.Timer frozen={timer.frozen}>
               <S.BombIcon ref={bombIconRef} src={bombIcon} alt="" />{' '}
-              {timer.minutes}:{timer.seconds}
+              {timer?.time?.minutes}:{timer?.time?.seconds}
             </S.Timer>
           ) : null}
         </Text>
@@ -78,14 +77,18 @@ const PlayerBattleProfile = ({
         </S.PlayerBoard>
 
         <S.Powers>
-          {powers?.reveil && (
-            <S.ReveilCardsButton
-              used={powers.reveil.used}
-              title="Reveil the cards"
-              onClick={powers.reveil.handler}>
-              <img src={eye} alt="" />
-            </S.ReveilCardsButton>
-          )}
+          {powers &&
+            Object.keys(powers).map((power) => {
+              return (
+                <S.PowerButton
+                  key={power}
+                  used={powers[power as keyof typeof powers]?.used}
+                  title={powers[power as keyof typeof powers]?.title}
+                  onClick={powers[power as keyof typeof powers]?.handler}>
+                  {powers[power as keyof typeof powers]?.icon}
+                </S.PowerButton>
+              );
+            })}
         </S.Powers>
       </div>
     </S.Flex>

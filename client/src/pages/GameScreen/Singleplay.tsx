@@ -2,7 +2,7 @@ import socketIOClient from 'socket.io-client';
 
 import { useState, useEffect, useContext } from 'react';
 import { createPortal } from 'react-dom';
-import BattleResults from '../../components/BatttleResults';
+import BattleResults from '../../components/BattleResults';
 
 import { useNavigate } from 'react-router-dom';
 import { FaFire } from 'react-icons/fa';
@@ -33,13 +33,13 @@ const Singleplay = ({ gameConfig }: { gameConfig: GameConfig | null }) => {
     comboScore: 0,
   });
   const [cardsActive, setCardsActive] = useState<number[]>([]);
-  const [playerWon, setPlayerWon] = useState(true);
+  const [results, setResults] = useState('won');
   const timerConfig = {
     autoStart: false,
     expiryTimestamp: new Date(Date.now() + 30000),
     onExpire: () => {
       socket.emit('Timer End');
-      setPlayerWon(false);
+      setResults('loose');
     },
   };
   const {
@@ -177,10 +177,7 @@ const Singleplay = ({ gameConfig }: { gameConfig: GameConfig | null }) => {
     <Container>
       {gameEnd !== false
         ? createPortal(
-            <BattleResults
-              isWinner={playerWon}
-              winnerScore={playerStats.score}
-            />,
+            <BattleResults results={results} winnerScore={playerStats.score} />,
             document.body
           )
         : null}

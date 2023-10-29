@@ -7,16 +7,16 @@ import { BattleResultsProps } from './BattleResultsProps';
 import Text from '../../ui/Text';
 
 const BattleResults = ({
-  isWinner,
+  results,
   opponentName,
   winnerScore,
 }: BattleResultsProps) => {
   useEffect(() => {
-    if (isWinner) {
+    if (results === 'won') {
       winShoot();
       setTimeout(winShoot, 1000);
       setTimeout(winShoot, 2000);
-    } else {
+    } else if (results === 'loose') {
       looseShoot();
       setTimeout(looseShoot, 1000);
       setTimeout(looseShoot, 2000);
@@ -25,9 +25,15 @@ const BattleResults = ({
 
   return (
     <S.Centered>
-      {isWinner ? <S.WinText>WIN</S.WinText> : <S.LooseText>Loose</S.LooseText>}
-      {opponentName ? (
-        isWinner ? (
+      {results === 'won' ? (
+        <S.WinText>WIN</S.WinText>
+      ) : results === 'loose' ? (
+        <S.LooseText>Loose</S.LooseText>
+      ) : (
+        <S.DrawText>Draw</S.DrawText>
+      )}
+      {opponentName && !(results === 'draw') ? (
+        results === 'won' ? (
           <Text alignment="center">over</Text>
         ) : (
           <Text alignment="center">to</Text>

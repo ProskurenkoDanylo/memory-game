@@ -116,11 +116,20 @@ export const Achievement = styled.img`
   height: 25px;
 `;
 
-export const Timer = styled.p`
+export const Timer = styled.p<{ frozen: boolean | undefined }>`
   font-size: 1.3rem;
   color: #fff;
   font-weight: bold;
   text-align: left;
+
+  ${({ frozen }) => {
+    return (
+      frozen &&
+      css`
+        color: #5be7fb;
+      `
+    );
+  }}
 `;
 
 export const BombIcon = styled.img`
@@ -130,16 +139,17 @@ export const BombIcon = styled.img`
   z-index: 5;
 `;
 
-export const ReveilCardsButton = styled.button<{ used: boolean }>`
+export const PowerButton = styled.button<{ used: boolean | undefined }>`
   ${({ used }) =>
     used &&
     css`
       opacity: 0.6;
     `}
   cursor: pointer;
-  display: block;
+  display: inline-block;
   border-radius: 25%;
   border: 1px solid #fff;
   background-color: #0e162b;
   padding: 0.5em;
+  margin-right: 10px;
 `;

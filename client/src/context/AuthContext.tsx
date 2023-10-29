@@ -1,9 +1,10 @@
 import { createContext, useState, useEffect } from 'react';
 import { checkIfAuthenticated, logoutUser } from '../api';
+import User from '../types/user';
 
 const AuthContext = createContext<{
   isAuthenticated?: boolean;
-  user?: object | null;
+  user?: User | null;
   contextLoading?: boolean;
   login: () => void;
   logout: () => void;
