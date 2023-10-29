@@ -1,5 +1,5 @@
 export interface BattleResultsProps {
-  isWinner: boolean;
+  results: string;
   winnerScore: number;
   opponentName?: string;
 }

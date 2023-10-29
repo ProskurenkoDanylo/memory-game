@@ -6,7 +6,7 @@ interface Game {
   time?: number; // only in single mode if the difficulty is chosen
   cards?: any[];
   endless?: Boolean; // only in single mode
-  multiplayerTimer?: Boolean; // only in multiplayer mode
+  bombTimer?: Boolean; // only in multiplayer mode
   superPowers?: Boolean;
 }
 
@@ -24,10 +24,11 @@ async function createGame(config) {
   if (mode === 1) {
     game.endless = true;
   } else if (mode === 2 && multiplayer) {
-    game.multiplayerTimer = true;
+    game.bombTimer = true;
     game.time = 30; // in seconds
   } else if (mode === 3) {
     game.superPowers = true;
+    game.time = 60; // in seconds
   }
 
   const cards = await generateCards(category);

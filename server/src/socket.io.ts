@@ -4,6 +4,8 @@ import isEqual from 'lodash/isequal';
 let waitingPlayers = [];
 const rooms = new Map();
 let isMultiplayer = false;
+let cardsFrozen = [];
+let unfreezeCounter = {};
 
 function createRoomAndStartGame({
   gameConfig,
@@ -93,6 +95,24 @@ export function initializeSocketIo(server) {
       }
     });
 
+    socket.on('setTimer', (time) => {
+      if (isMultiplayer) {
+        const { room } = rooms.get(socket.id);
+        io.to(room).emit('setTimers', time);
+      }
+    });
+
+    socket.on('GameEnd', () => {
+      if (isMultiplayer) {
+        const { room, gameConfig } = rooms.get(socket.id);
+        if (!gameConfig?.endless) {
+          io.to(room).emit('gameEnd');
+        } else if (pairs < 100) {
+          pairs = (Math.sqrt(pairs) + 2) ** 2;
+        }
+      }
+    });
+
     socket.on('Timer End', () => {
       if (isMultiplayer) {
         const { room } = rooms.get(socket.id);
@@ -142,30 +162,40 @@ export function initializeSocketIo(server) {
 
             io.to(room).emit('match', savedIndexes);
 
-            if (numberOfPaired >= pairs) {
-              io.to(room).emit('GameEnd');
-              if (!gameConfig?.endless) {
-                io.to(room).disconnectSockets();
-              } else {
-                if (pairs < 100) {
-                  pairs = (Math.sqrt(pairs) + 2) ** 2;
-                }
-              }
+            if (cardsFrozen.length && pairs - numberOfPaired === 2) {
+              const cardIndex = cardsFrozen.shift();
+              io.to(room).emit('unfreezeCard', cardIndex);
             }
           } else {
             numberOfPaired += 2;
             socket.emit('match', savedIndexes);
-            if (numberOfPaired >= pairs) {
-              socket.emit('GameEnd');
+          }
+        } else if (isMultiplayer) {
+          const { room, opponent } = rooms.get(socket.id);
+          if (cardsFrozen.length) {
+            if (unfreezeCounter[opponent] >= 1) {
+              unfreezeCounter[opponent] = 0;
+              const { room } = rooms.get(socket.id);
+              const cardIndex = cardsFrozen.shift();
+              io.to(room).emit('unfreezeCard', cardIndex);
+            }
+            if (unfreezeCounter[socket.id] >= 1) {
+              unfreezeCounter[socket.id] = 0;
+              const { room } = rooms.get(socket.id);
+              const cardIndex = cardsFrozen.shift();
+              io.to(room).emit('unfreezeCard', cardIndex);
+            }
+
+            if (!unfreezeCounter[socket.id]) {
+              unfreezeCounter[socket.id] = 1;
+            } else {
+              unfreezeCounter[socket.id] += 1;
             }
           }
+
+          io.to(room).emit('no match', savedIndexes);
         } else {
-          if (isMultiplayer) {
-            const { room } = rooms.get(socket.id);
-            io.to(room).emit('no match', savedIndexes);
-          } else {
-            socket.emit('no match', savedIndexes);
-          }
+          socket.emit('no match', savedIndexes);
         }
 
         savedCard = null;
@@ -190,17 +220,38 @@ export function initializeSocketIo(server) {
       io.to(opponent).emit('disagreeReveilCards');
     });
 
+    socket.on('reveilToPlayer', () => {
+      const { opponent } = rooms.get(socket.id);
+
+      socket.emit('reveilCardsToPlayer');
+      io.to(opponent).emit('powerUpUsed', 'reveilCards');
+    });
+
+    socket.on('freezeTimer', () => {
+      const { opponent } = rooms.get(socket.id);
+
+      socket.emit('freezeTimer');
+      io.to(opponent).emit('powerUpUsed', 'freezeTimer');
+      setTimeout(() => {
+        socket.emit('unfreezeTimer', 'player');
+        io.to(opponent).emit('unfreezeTimer', 'opponent');
+      }, 10000);
+    });
+
+    socket.on('freezeCard', (cardIndex) => {
+      const { opponent } = rooms.get(socket.id);
+      cardsFrozen.push(cardIndex);
+
+      socket.emit('freezeCard', cardIndex, 'player');
+      io.to(opponent).emit('freezeCard', cardIndex, 'opponent');
+      io.to(opponent).emit('powerUpUsed', 'freezeCard');
+    });
+
     socket.on('disconnect', () => {
       waitingPlayers = waitingPlayers.filter((el) => el.socket !== socket);
       if (rooms.has(socket.id)) {
-        const { room } = rooms.get(socket.id);
-        rooms.delete(socket.id);
-        socket.leave(room);
-
-        const playersInRoom = io.sockets.adapter.rooms.get(room);
-        if (playersInRoom && playersInRoom.size > 0) {
-          io.to(room).emit('opponentLeft');
-        }
+        const { room, opponent } = rooms.get(socket.id);
+        io.to(opponent).emit('opponentLeft');
       }
 
       savedCard = null;
