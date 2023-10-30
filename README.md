@@ -102,13 +102,13 @@ You will need an npm in order to run this project.
   - [x] Difficulty Modes
   - [x] Bomb timer Mode
   - [x] Classic Mode
-  - [ ] Endless Mode
-  - [ ] Superpowers Mode 
+  - [] Endless Mode
+  - [] Superpowers Mode 
 - [ ] Multiplayer
   - [x] Bomb timer Mode
   - [x] Classic Mode
-  - [ ] Endless Mode
-  - [ ] Superpowers Mode 
+  - [x] Endless Mode
+  - [x] Superpowers Mode 
 - [ ] History
 - [ ] User dashboard
 - [ ] Admin panel
