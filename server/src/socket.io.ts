@@ -105,11 +105,23 @@ export function initializeSocketIo(server) {
     socket.on('GameEnd', () => {
       if (isMultiplayer) {
         const { room, gameConfig } = rooms.get(socket.id);
-        if (!gameConfig?.endless) {
-          io.to(room).emit('gameEnd');
-        } else if (pairs < 100) {
+        if (gameConfig?.endless && pairs < 100) {
           pairs = (Math.sqrt(pairs) + 2) ** 2;
         }
+
+        io.to(room).emit('gameEnd');
+      }
+    });
+
+    socket.on('shakeCards', () => {
+      if (isMultiplayer) {
+        const { gameConfig } = rooms.get(socket.id);
+
+        if (gameConfig.endless && pairs < 100) {
+          pairs = (Math.sqrt(pairs) + 2) ** 2;
+        }
+
+        socket.emit('shakeCards');
       }
     });
 

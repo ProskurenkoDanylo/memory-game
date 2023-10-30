@@ -13,17 +13,17 @@ export default function useMultiplayerEffects(
 ) {
   // Animate dots when the component mounts
   useEffect(() => {
-    Helpers.animateDots(state?.setDots);
+    Helpers.animateDots(state.setDots);
   }, []);
 
   useEffect(() => {
     // Redirect to home if user is not authenticated
-    if (!state?.isAuthenticated) {
+    if (!state.isAuthenticated) {
       return state?.navigate('/');
     }
     if (gameConfig) {
       Helpers.setUpGameAndConnectSocket({
-        setGame: state?.setGame,
+        setGame: state.setGame,
         socket,
         gameConfig,
         user: state?.user,
