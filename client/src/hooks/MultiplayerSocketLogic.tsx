@@ -251,16 +251,8 @@ const useMultiplayerSocketLogic = (params: MultiplayerSocketLogicParams) => {
     };
     const gameEnd = () => {
       // Handle the end of the game when there is no cards left
-      if (game?.config?.endless) {
-        setTimeout(async () => {
-          const amount =
-            game.cards.length < 100 ? Math.sqrt(game.cards.length) + 2 : 10;
-          const newCards = await generateGame(game.config.category, amount);
-          if (newCards[0].error) {
-            throw new Error(newCards[0].error);
-          }
-          socket.emit('RestartGame', newCards);
-        }, 1200);
+      if (game.config.endless) {
+        socket.emit('shakeCards');
       } else {
         pauseBothTimers();
         if (stats.player.score > stats.opponent.score) {
@@ -274,6 +266,16 @@ const useMultiplayerSocketLogic = (params: MultiplayerSocketLogicParams) => {
         localStorage.setItem('config', JSON.stringify({ multiplayer: true }));
       }
     };
+    const shakeTheCards = async () => {
+      const amount =
+        game.cards.length < 100 ? Math.sqrt(game.cards.length) + 2 : 10;
+      const newCards = await generateGame(game.config.category, amount);
+      if (newCards[0].error) {
+        throw new Error(newCards[0].error);
+      }
+      socket.emit('RestartGame', newCards);
+    };
+
     const restartGame = (newCards: any[]) => {
       // Restart the game with new cards
       const { config } = game;
@@ -437,6 +439,7 @@ const useMultiplayerSocketLogic = (params: MultiplayerSocketLogicParams) => {
     socket.on('no match', noMatch);
     socket.on('Timer End', timerEnd);
     socket.on('gameEnd', gameEnd);
+    socket.on('shakeCards', shakeTheCards);
     socket.on('RestartGame', restartGame);
     socket.on('reveilCardsSuggestion', reveilCardsSuggestion);
     socket.on('reveilCards', reveilCards);
@@ -459,7 +462,8 @@ const useMultiplayerSocketLogic = (params: MultiplayerSocketLogicParams) => {
       socket.off('match', match);
       socket.off('no match', noMatch);
       socket.off('Timer End', timerEnd);
-      socket.off('GameEnd', gameEnd);
+      socket.off('gameEnd', gameEnd);
+      socket.off('shakeCards', shakeTheCards);
       socket.off('RestartGame', restartGame);
       socket.off('freezeTimer', freezeTimer);
       socket.off('unfreezeTimer', unfreezeTimer);
@@ -470,6 +474,7 @@ const useMultiplayerSocketLogic = (params: MultiplayerSocketLogicParams) => {
       socket.off('opponentLeft', opponentDisconnected);
     };
   }, [
+    game,
     playerTimer?.totalSeconds,
     opponentTimer?.totalSeconds,
     playerTurn,
