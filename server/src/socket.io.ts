@@ -110,6 +110,8 @@ export function initializeSocketIo(server) {
         }
 
         io.to(room).emit('gameEnd');
+      } else {
+        socket.emit('gameEnd');
       }
     });
 

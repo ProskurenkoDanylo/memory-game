@@ -48,7 +48,10 @@ const BattleResults = ({
         <Text alignment="center">Score: {winnerScore}</Text>
       )}
       <S.Buttons>
-        <ButtonOrLink link="/game/mode" $colors="#0FB01F">
+        <ButtonOrLink
+          // if opponentName is not null, it means that the game was multiplayer
+          link={`${opponentName ? '/game/mode' : '/game/category'}`}
+          $colors="#0FB01F">
           Play again
         </ButtonOrLink>{' '}
         <ButtonOrLink link="/">Home</ButtonOrLink>

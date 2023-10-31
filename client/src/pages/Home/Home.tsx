@@ -32,7 +32,7 @@ function Home() {
     if (multiplayer) {
       navigate('/game/mode');
     } else {
-      navigate('/game/difficulty');
+      navigate('/game/category');
     }
   };
 
@@ -41,7 +41,6 @@ function Home() {
       'config',
       JSON.stringify({
         multiplayer: Boolean(Math.floor(Math.random() * 2)),
-        difficulty: Math.floor(Math.random() * 3),
         mode: Math.floor(Math.random() * 4),
         category: 'Category',
       })

@@ -3,7 +3,7 @@ import { getRandomImages } from './models/category.model';
 interface Game {
   category?: String;
   multiplayer?: Boolean;
-  time?: number; // only in single mode if the difficulty is chosen
+  time?: number;
   cards?: any[];
   endless?: Boolean; // only in single mode
   bombTimer?: Boolean; // only in multiplayer mode
@@ -11,15 +11,11 @@ interface Game {
 }
 
 async function createGame(config) {
-  const { multiplayer, difficulty, mode, category } = config;
+  const { multiplayer, mode, category } = config;
   const game: Game = {};
 
   game.multiplayer = multiplayer;
   game.category = category;
-
-  if (!multiplayer) {
-    game.time = calculateTimeForDifficulty(difficulty);
-  }
 
   if (mode === 1) {
     game.endless = true;
@@ -41,20 +37,6 @@ async function createGame(config) {
   }
 
   return game;
-}
-
-function calculateTimeForDifficulty(difficulty: number) {
-  let time = 0;
-
-  if (difficulty === 0) {
-    time = 5 * 60; // in seconds
-  } else if (difficulty === 1) {
-    time = 3 * 60; // in seconds
-  } else if (difficulty === 2) {
-    time = 60; // in seconds
-  }
-
-  return time;
 }
 
 async function generateCards(category: string) {
