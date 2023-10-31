@@ -1,5 +1,6 @@
 import styled, { keyframes, css } from 'styled-components';
 import Card from '../../components/Card';
+import Text from '../../ui/Text';
 
 import bombIcon from '../../assets/images/bomb.png';
 import explosion from '../../assets/images/explosion.png';
@@ -196,4 +197,8 @@ export const CardStyled = styled(Card)<{
         border-color: #5be7fb !important;
       }
     `}
+`;
+
+export const SinglePlayScore = styled(Text)`
+  margin-bottom: 50px;
 `;

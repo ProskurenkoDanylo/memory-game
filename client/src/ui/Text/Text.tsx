@@ -2,6 +2,7 @@ import TextProps from './Text.type';
 import * as S from './Text.style';
 
 function Text({
+  className,
   children,
   alignment = 'left',
   color = '#fff',
@@ -10,6 +11,7 @@ function Text({
 }: TextProps) {
   return (
     <S.Text
+      className={className}
       alignment={alignment}
       color={color}
       fontWeight={fontWeight}

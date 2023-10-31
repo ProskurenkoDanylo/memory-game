@@ -1,24 +1,22 @@
 import socketIOClient from 'socket.io-client';
-
-import { useState, useEffect, useContext } from 'react';
+import { useState, useEffect, useContext, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import BattleResults from '../../components/BattleResults';
-
+import CountUp from 'react-countup';
 import { useNavigate } from 'react-router-dom';
 import { FaFire } from 'react-icons/fa';
-import { useTimer } from 'react-timer-hook';
 
 import GameConfig from '../../types/gameConfig';
 import { AuthContext } from '../../context/AuthContext';
 
-import Container from '../../ui/Container';
-import Text from '../../ui/Text';
-import Card from '../../components/Card';
 import * as S from './GameScreen.style';
-import { initializeGame } from '../../api';
-import PlayerStats from '../../types/playerStats';
-
+import Card from '../../components/Card';
+import BattleResults from '../../components/BattleResults';
+import Container from '../../ui/Container';
+import Modal from '../../ui/Modal/Modal';
 import defaultCover from '../../assets/images/default-cover.svg';
+import { initializeGame } from '../../api';
+
+import PlayerStats from '../../types/playerStats';
 
 const socket = socketIOClient('https://localhost:3000');
 
@@ -26,141 +24,112 @@ const Singleplay = ({ gameConfig }: { gameConfig: GameConfig | null }) => {
   let navigate = useNavigate();
   const { isAuthenticated } = useContext(AuthContext);
   const [game, setGame] = useState<any>(null);
-  const [gameEnd, setGameEnd] = useState(false);
   const [playerStats, setPlayerStats] = useState<PlayerStats>({
     score: 0,
     comboCounter: 0,
     comboScore: 0,
   });
   const [cardsActive, setCardsActive] = useState<number[]>([]);
-  const [results, setResults] = useState('won');
-  const timerConfig = {
-    autoStart: false,
-    expiryTimestamp: new Date(Date.now() + 30000),
-    onExpire: () => {
-      socket.emit('Timer End');
-      setResults('loose');
-    },
-  };
-  const {
-    totalSeconds: playerTotalSeconds,
-    seconds: playerSeconds,
-    minutes: playerMinutes,
-    pause: playerTimerPause,
-    restart: playerTimerRestart,
-  } = useTimer(timerConfig);
+  const [results, setResults] = useState<string | null>(null);
 
-  useEffect(() => {
+  const fetchData = useCallback(async () => {
     if (!isAuthenticated) {
       return navigate('/');
     }
     if (gameConfig) {
-      const fetchData = async () => {
-        return await initializeGame(gameConfig as any)
-          .then((res) => res.json())
-          .then((data) => {
-            const { cards, ...config } = data;
-            const newData = {
-              cards: cards.map((el: any) => ({
-                image: el,
-                disabled: false,
-                opened: false,
-              })),
-              config,
-            };
-            socket.connect();
-            setGame(newData);
-            if (newData.config.time) {
-              const timer = Date.now() + newData.config.time * 1000;
-              playerTimerRestart(new Date(timer), true);
-            }
-          });
+      const res = await initializeGame(gameConfig as any);
+      const data = await res.json();
+      const { cards, ...config } = data;
+      const newData = {
+        cards: cards.map((el: any) => ({
+          image: el,
+          disabled: false,
+          opened: false,
+        })),
+        config,
       };
-      fetchData();
+      socket.connect();
+      setGame(newData);
     }
+  }, [gameConfig, isAuthenticated, navigate]);
+
+  const updateCards = useCallback((cardIds: number[], disabled: boolean) => {
+    setGame((prev: any) => {
+      const newData = { ...prev };
+      newData.cards[cardIds[0]].opened = false;
+      newData.cards[cardIds[1]].opened = false;
+      newData.cards[cardIds[0]].disabled = disabled;
+      newData.cards[cardIds[1]].disabled = disabled;
+      return newData;
+    });
+  }, []);
+
+  const match = useCallback(
+    (cardIds: number[]) => {
+      setTimeout(() => {
+        updateCards(cardIds, true);
+
+        setPlayerStats((prev: PlayerStats) => {
+          return {
+            comboScore: prev.comboCounter * 150,
+            comboCounter: prev.comboCounter + 1,
+            score: prev.score + 300 + prev.comboCounter * 150,
+          };
+        });
+      }, 1000);
+
+      setTimeout(() => {
+        setCardsActive([]);
+
+        if (game?.cards.filter((card: any) => !card.disabled).length === 0) {
+          socket.emit('GameEnd');
+        }
+      }, 1200);
+    },
+    [game]
+  );
+
+  const noMatch = useCallback((cardIds: number[]) => {
+    // timeout for remembering cards by player
+    setTimeout(() => {
+      updateCards(cardIds, false);
+    }, 1000);
+
+    // larger timeout for css transition to end
+    setTimeout(() => {
+      setPlayerStats((prev: PlayerStats) => ({
+        ...prev,
+        comboCounter: 0,
+        comboScore: 0,
+      }));
+      setCardsActive([]);
+    }, 1200);
+  }, []);
+
+  const gameEnd = useCallback(() => {
+    setResults('won');
+    localStorage.setItem('config', JSON.stringify({ multiplayer: false }));
+  }, []);
+
+  useEffect(() => {
+    fetchData();
 
     return () => {
       socket.disconnect();
     };
-  }, [gameConfig]);
+  }, [fetchData]);
 
   useEffect(() => {
-    const match = (cardIds: number[]) => {
-      // timeout for remembering cards by player
-      setTimeout(() => {
-        setGame((prev: any) => {
-          const newData = { ...prev };
-          newData.cards[cardIds[0]].opened = false;
-          newData.cards[cardIds[1]].opened = false;
-          newData.cards[cardIds[0]].disabled = true;
-          newData.cards[cardIds[1]].disabled = true;
-          return newData;
-        });
-        setPlayerStats((prev) => ({
-          comboScore: prev.comboCounter * 150,
-          comboCounter: prev.comboCounter + 1,
-          score: prev.score + 300 + prev.comboCounter * 150,
-        }));
-      }, 1000);
-
-      // larger timeout for css transition to end
-      setTimeout(() => {
-        setCardsActive([]);
-      }, 1200);
-    };
-    const noMatch = (cardIds: number[]) => {
-      // timeout for remembering cards by player
-      setTimeout(() => {
-        setGame((prev: any) => {
-          const newData = { ...prev };
-          newData.cards[cardIds[0]].opened = false;
-          newData.cards[cardIds[1]].opened = false;
-          return newData;
-        });
-      }, 1000);
-
-      // larger timeout for css transition to end
-      setTimeout(() => {
-        const decreaseTimerOrSetToNow = (
-          totalSeconds: number,
-          secondsToDecrease: number
-        ) => {
-          return totalSeconds > secondsToDecrease
-            ? new Date(
-                Date.now() + totalSeconds * 1000 - secondsToDecrease * 1000
-              )
-            : new Date(Date.now());
-        };
-        setPlayerStats((prev) => ({ ...prev, comboCounter: 0 }));
-        playerTimerRestart(
-          decreaseTimerOrSetToNow(playerTotalSeconds, 5),
-          true
-        );
-        setCardsActive([]);
-      }, 1200);
-    };
-    const timerEnd = () => {
-      setGameEnd(true);
-    };
-    const gameEnd = () => {
-      setTimeout(() => {
-        playerTimerPause();
-        setGameEnd(true);
-      }, 1200);
-    };
-
     socket.on('match', match);
     socket.on('no match', noMatch);
-    socket.on('Timer End', timerEnd);
-    socket.on('GameEnd', gameEnd);
+    socket.on('gameEnd', gameEnd);
 
     return () => {
       socket.off('match', match);
       socket.off('no match', noMatch);
-      socket.off('Timer End', timerEnd);
-      socket.off('GameEnd', gameEnd);
+      socket.off('gameEnd', gameEnd);
     };
-  }, [playerTotalSeconds, playerStats]);
+  }, [playerStats]);
 
   const handleCardClick = (card: string, ind: number) => {
     setGame((prev: any) => {
@@ -175,30 +144,29 @@ const Singleplay = ({ gameConfig }: { gameConfig: GameConfig | null }) => {
 
   return (
     <Container>
-      {gameEnd !== false
+      {results !== null
         ? createPortal(
-            <BattleResults results={results} winnerScore={playerStats.score} />,
+            <Modal canClose={false}>
+              <BattleResults
+                results={results}
+                winnerScore={playerStats.score}
+              />
+            </Modal>,
             document.body
           )
         : null}
-      {game?.config.time && (
-        <Text>
-          Time: {playerMinutes}: {playerSeconds}
-        </Text>
-      )}
-      <Text alignment="center" fontWeight="bold">
+      <S.SinglePlayScore alignment="center" fontWeight="bold">
         <FaFire color="#FF7A00" />
         Score:{' '}
         <S.Score>
-          {playerStats.score}
+          <CountUp start={0} end={playerStats.score} delay={0} preserveValue />
           {playerStats.comboScore > 0 && (
             <S.ComboScore key={playerStats.comboScore} className="fade-out">
               {` + ${playerStats.comboScore}`}
             </S.ComboScore>
           )}
         </S.Score>
-      </Text>
-      <Text alignment="center">Highscore: 44985</Text>
+      </S.SinglePlayScore>
       <S.GameBoard size={game && Math.sqrt(game.cards.length)}>
         {game &&
           game.cards.map((el: any, ind: number) => (
